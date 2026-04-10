@@ -127,7 +127,6 @@ REQ <id> [<descriptive label>]
 | `HOLD <entity>`                                  | Suspend / freeze execution                     |
 | `TOGGLE <entity>`                                | Invert the boolean value of entity             |
 | `TRANSMIT <entity>(<param>=<val>) VIA <channel>` | Send a signal over a channel                   |
-| `CONFIGURE { <entity> <- <expr>, … }`            | Set registers or fields according to a mapping |
 | `SET_STATE <state_name>`                         | Transition to a named system state             |
 | `START_EXECUTE <entity>`                         | Begin execution of a task or sequence          |
 | `IF <cond> THEN <action>`                        | Conditional action (inline, within a step)     |
@@ -150,7 +149,6 @@ Actions describe what the software *does*. Temporal logic formulas reason over *
 | `HOLD e`                    | `halted(e)`               | Execution of `e` is suspended                             |
 | `TOGGLE e`                  | `e = ¬prev(e)`            | `e` holds the boolean inverse of its previous value       |
 | `TRANSMIT e(p=v) VIA ch`    | `transmitted(e, p=v, ch)` | Signal `e` with parameter `p=v` was sent over `ch`        |
-| `CONFIGURE { k <- v }`      | `k = v`                   | Entity `k` holds value `v` (one clause per mapping entry) |
 | `SET_STATE s`               | `mode = s`                | System is currently in state `s`                          |
 | `START_EXECUTE seq`         | `executing(seq)`          | Sequence `seq` is currently running                       |
 | `ON return(f)` (as trigger) | `returned(f)`             | Routine `f` has returned                                  |
@@ -287,13 +285,11 @@ REQ 04 [Interrupt / exception handling – vector table config]
   TIER:    LTL
   TRIGGER: ALWAYS
   EFFECT:
-    CONFIGURE {
-      IVOR0 <- ADDR(CriticalInput),
-      IVOR1 <- ADDR(MachineCheck)
-    }
+    STORE ADDR(CriticalInput) TO IVOR0
+    STORE ADDR(MachineCheck)  TO IVOR1
 
 // LTL
-F( IVOR0 = ADDR(CriticalInput) ∧ IVOR1 = ADDR(MachineCheck) )
+F( value_at(IVOR0) = ADDR(CriticalInput) ∧ value_at(IVOR1) = ADDR(MachineCheck) )
 ```
 
 ## 05
