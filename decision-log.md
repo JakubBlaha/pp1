@@ -39,3 +39,13 @@ Additional axioms could enforce that start and end don't fire simultaneously, an
 **Benefit:** The pairing is explicit and machine-checkable rather than a naming convention. The syntax is self-documenting — `ON START(exception)` visually signals it is one half of a paired concept, unlike a flat event name.
 
 **Why not done yet:** Current naming convention is sufficient for the requirements at hand. This would be a natural next step when building a checker that needs to validate trace well-formedness.
+
+---
+
+## Drop `COPY`, use `STORE` for all value transfers
+
+**Decision:** Remove `COPY <src> TO <dst>` from the action vocabulary. Use `STORE <src> TO <dst>` for all value transfer operations, whether register-to-register, value-to-memory, or address-to-register.
+
+**Reason:** `COPY` and `STORE` are semantically identical in the formalism — both move a value from a source to a destination with the same effect predicate (`value_at(dst) = src`). The distinction came from the English wording in the original requirement text, not from any formal difference. Having two verbs for the same operation is a source of inconsistency.
+
+**Affected:** REQ 05 step 1 changed from `COPY SRR0 TO R5` to `STORE SRR0 TO R5`. LTL formula updated accordingly.

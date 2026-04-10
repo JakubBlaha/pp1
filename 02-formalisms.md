@@ -121,7 +121,6 @@ Events that have duration are modelled as two point events: `ON <name>_start` an
 | `CALCULATE <entity> = <expr>`                    | Compute and assign a value                 |
 | `READ <entity> FROM <addr>`                      | Read value from a memory address           |
 | `STORE <entity> TO <dst>`                        | Write value to a destination               |
-| `COPY <src> TO <dst>`                            | Copy value between two locations           |
 | `INVOKE <entity>`                                | Call a routine or handler                  |
 | `HOLD <entity>`                                  | Suspend / freeze execution                 |
 | `TOGGLE <entity>`                                | Invert the boolean value of entity         |
@@ -143,7 +142,6 @@ Actions describe what the software *does*. Temporal logic formulas reason over *
 | `CALCULATE e = expr`        | `e = expr`                | Entity `e` currently holds the computed value       |
 | `READ e FROM addr`          | `e = value_at(addr)`      | Entity `e` holds the value currently at `addr`      |
 | `STORE e TO dst`            | `value_at(dst) = e`       | Destination `dst` holds the value of `e`            |
-| `COPY src TO dst`           | `dst = src`               | `dst` holds the same value as `src`                 |
 | `INVOKE f`                  | `invoked(f)`              | Routine `f` has been called                         |
 | `HOLD e`                    | `halted(e)`               | Execution of `e` is suspended                       |
 | `TOGGLE e`                  | `e = ¬prev(e)`            | `e` holds the boolean inverse of its previous value |
@@ -311,14 +309,14 @@ REQ 05 [Sequenced actions – exception handling procedure]
   TIER:    TA
   TRIGGER: ON exception_start
   EFFECT:  ORDERED
-    1. COPY SRR0 TO R5
+    1. STORE SRR0 TO R5
     2. INVOKE image_exception_handler
     3. IF image_exception_handler RETURNS:
          HOLD software_execution
 
 // LTL (ordering via U; step 3 is conditional)
 G( exception_start →
-     copy(SRR0, R5)
+     R5 = SRR0
      U (invoke(image_exception_handler)
         U (returns(image_exception_handler) → hold(software_execution))) )
 ```
