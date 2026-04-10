@@ -75,13 +75,12 @@ REQ <id> [<descriptive label>]
 | Expression                                   | Meaning                                             |
 | -------------------------------------------- | --------------------------------------------------- |
 | `ALWAYS`                                     | No trigger; the property must hold at every instant |
-| `ON power_up(<entity>)`                      | Hardware power-up event                             |
-| `ON initialization`                          | End of software initialization phase                |
+| `ON <event_name>`                            | A named point event fires                           |
 | `ON write(<entity>)`                         | A write operation to an entity                      |
 | `ON receive(<datatype> [, <param>=<value>])` | Receive a data instance                             |
 | `ON return(<entity>)`                        | An invoked routine returns                          |
-| `AFTER <event_expr>`                         | After (not during) the named event                  |
-| `WHILE STATE(<name>)`                        | While the system is in a named state                |
+
+Events that have duration are modelled as two point events: `ON <name>_start` and `ON <name>_end`. For example, `ON exception_start` / `ON exception_end`, `ON initialization_start` / `ON initialization_end`.
 
 ---
 
@@ -117,19 +116,19 @@ REQ <id> [<descriptive label>]
 
 ## Action Vocabulary (EFFECT)
 
-| Action                                           | Meaning                                        |
-| ------------------------------------------------ | ---------------------------------------------- |
-| `CALCULATE <entity> = <expr>`                    | Compute and assign a value                     |
-| `READ <entity> FROM <addr>`                      | Read value from a memory address               |
-| `STORE <entity> TO <dst>`                        | Write value to a destination                   |
-| `COPY <src> TO <dst>`                            | Copy value between two locations               |
-| `INVOKE <entity>`                                | Call a routine or handler                      |
-| `HOLD <entity>`                                  | Suspend / freeze execution                     |
-| `TOGGLE <entity>`                                | Invert the boolean value of entity             |
-| `TRANSMIT <entity>(<param>=<val>) VIA <channel>` | Send a signal over a channel                   |
-| `SET_STATE <state_name>`                         | Transition to a named system state             |
-| `START_EXECUTE <entity>`                         | Begin execution of a task or sequence          |
-| `IF <cond> THEN <action>`                        | Conditional action (inline, within a step)     |
+| Action                                           | Meaning                                    |
+| ------------------------------------------------ | ------------------------------------------ |
+| `CALCULATE <entity> = <expr>`                    | Compute and assign a value                 |
+| `READ <entity> FROM <addr>`                      | Read value from a memory address           |
+| `STORE <entity> TO <dst>`                        | Write value to a destination               |
+| `COPY <src> TO <dst>`                            | Copy value between two locations           |
+| `INVOKE <entity>`                                | Call a routine or handler                  |
+| `HOLD <entity>`                                  | Suspend / freeze execution                 |
+| `TOGGLE <entity>`                                | Invert the boolean value of entity         |
+| `TRANSMIT <entity>(<param>=<val>) VIA <channel>` | Send a signal over a channel               |
+| `SET_STATE <state_name>`                         | Transition to a named system state         |
+| `START_EXECUTE <entity>`                         | Begin execution of a task or sequence      |
+| `IF <cond> THEN <action>`                        | Conditional action (inline, within a step) |
 
 When `ORDERED` is present, the listed steps must execute in the given sequence. Each step is a state in the implied automaton (TA tier) or is expressed with `U` operators (LTL/MTL/STL tier).
 
@@ -139,19 +138,19 @@ When `ORDERED` is present, the listed steps must execute in the given sequence. 
 
 Actions describe what the software *does*. Temporal logic formulas reason over *state* — what *holds* as a result. Each action has a corresponding **effect predicate** that captures the observable state produced by that action. These predicates are what appear in LTL/MTL/STL formulas.
 
-| Action                      | Effect predicate          | Meaning of predicate                                      |
-| --------------------------- | ------------------------- | --------------------------------------------------------- |
-| `CALCULATE e = expr`        | `e = expr`                | Entity `e` currently holds the computed value             |
-| `READ e FROM addr`          | `e = value_at(addr)`      | Entity `e` holds the value currently at `addr`            |
-| `STORE e TO dst`            | `value_at(dst) = e`       | Destination `dst` holds the value of `e`                  |
-| `COPY src TO dst`           | `dst = src`               | `dst` holds the same value as `src`                       |
-| `INVOKE f`                  | `invoked(f)`              | Routine `f` has been called                               |
-| `HOLD e`                    | `halted(e)`               | Execution of `e` is suspended                             |
-| `TOGGLE e`                  | `e = ¬prev(e)`            | `e` holds the boolean inverse of its previous value       |
-| `TRANSMIT e(p=v) VIA ch`    | `transmitted(e, p=v, ch)` | Signal `e` with parameter `p=v` was sent over `ch`        |
-| `SET_STATE s`               | `mode = s`                | System is currently in state `s`                          |
-| `START_EXECUTE seq`         | `executing(seq)`          | Sequence `seq` is currently running                       |
-| `ON return(f)` (as trigger) | `returned(f)`             | Routine `f` has returned                                  |
+| Action                      | Effect predicate          | Meaning of predicate                                |
+| --------------------------- | ------------------------- | --------------------------------------------------- |
+| `CALCULATE e = expr`        | `e = expr`                | Entity `e` currently holds the computed value       |
+| `READ e FROM addr`          | `e = value_at(addr)`      | Entity `e` holds the value currently at `addr`      |
+| `STORE e TO dst`            | `value_at(dst) = e`       | Destination `dst` holds the value of `e`            |
+| `COPY src TO dst`           | `dst = src`               | `dst` holds the same value as `src`                 |
+| `INVOKE f`                  | `invoked(f)`              | Routine `f` has been called                         |
+| `HOLD e`                    | `halted(e)`               | Execution of `e` is suspended                       |
+| `TOGGLE e`                  | `e = ¬prev(e)`            | `e` holds the boolean inverse of its previous value |
+| `TRANSMIT e(p=v) VIA ch`    | `transmitted(e, p=v, ch)` | Signal `e` with parameter `p=v` was sent over `ch`  |
+| `SET_STATE s`               | `mode = s`                | System is currently in state `s`                    |
+| `START_EXECUTE seq`         | `executing(seq)`          | Sequence `seq` is currently running                 |
+| `ON return(f)` (as trigger) | `returned(f)`             | Routine `f` has returned                            |
 
 The distinction matters: the *action* is an event that occurs at a point in time; the *predicate* is a proposition that holds in the state that follows. In a temporal formula, `F( effect )` means "there exists a future state where the effect predicate holds" — not "the action fires again".
 
@@ -159,7 +158,7 @@ The distinction matters: the *action* is an event that occurs at a point in time
 
 ## Temporal Logic Translation Reference
 
-```
+```c
 // LTL
 G( trigger ∧ guard  →  F( effect ) )
 
@@ -310,7 +309,7 @@ ENTITY software_execution      : ABSTRACT
 
 REQ 05 [Sequenced actions – exception handling procedure]
   TIER:    TA
-  TRIGGER: WHILE STATE(handling_exception)
+  TRIGGER: ON exception_start
   EFFECT:  ORDERED
     1. COPY SRR0 TO R5
     2. INVOKE image_exception_handler
@@ -318,7 +317,7 @@ REQ 05 [Sequenced actions – exception handling procedure]
          HOLD software_execution
 
 // LTL (ordering via U; step 3 is conditional)
-G( handling_exception →
+G( exception_start →
      copy(SRR0, R5)
      U (invoke(image_exception_handler)
         U (returns(image_exception_handler) → hold(software_execution))) )
@@ -359,12 +358,12 @@ ENTITY MODESET_TOPIC  : DDS_TOPIC
 
 REQ 07 [I/O processing]
   TIER:    LTL
-  TRIGGER: AFTER ON initialization
+  TRIGGER: ON initialization_end
   EFFECT:
     TRANSMIT ModeEnable(value=TRUE) VIA MODESET_TOPIC
 
 // LTL
-G( initialized → F( transmit(ModeEnable, TRUE, MODESET_TOPIC) ) )
+G( initialization_end → F( transmit(ModeEnable, TRUE, MODESET_TOPIC) ) )
 ```
 
 ## 08
@@ -385,7 +384,7 @@ REQ 08 [State-machine logic]
     SET_STATE Backup
 
 // LTL
-G( receive(MastershipInfo, Mastership_b=BACKUP) → X( mode = BACKUP ) )
+G( receive(MastershipInfo, Mastership_b=BACKUP) → F( mode = BACKUP ) )
 ```
 
 ## 09
