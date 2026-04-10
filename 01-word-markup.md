@@ -13,7 +13,6 @@
 | udalosti                                         | write                                              |          |
 | abstraktni entity                                |                                                    |          |
 | stav                                             | handling an exception                              |          |
-| RFC 2119 - Requirement levels                    | must, shall                                        |          |
 | musi-to-rozumnet                                 | toggle                                             |          |
 | entita                                           | registr, pamet, signal value                       |          |
 | logicke spojky: ALL/ANY/NONE podminek            | ALL the following conditions, one of the following |          |
@@ -64,7 +63,6 @@ např. hodnoty, úložiště, pořadí, variace, podmínky/implikace
 
 Barvy v obrazku:
 - **zluta** = entity (registry, pameti, signaly, adresy, abstraktni entity)
-- **modra** = RFC 2119 requirement levels (shall, must)
 - **cervena** = transformace / operace nad entitami (calculate, difference, signed value, ...)
 - **fialova** = akce/slovesa ktera formalismus musi rozumet (toggle, store, read, copy, invoke, hold, execute, transmit, configure, operate, perform)
 - **zelena** = udalosti / podminky / casove vazby (write, when, after, if, returns, power-up, initialization, receive)
@@ -177,7 +175,6 @@ Barvy v obrazku:
 | udalosti                                         | write, power-up, initialization, receive a new data instance, returns                                                                            |          |
 | abstraktni entity                                | maximum execution time measurement data, Mode Enable, Exception Vector Table                                                                     |          |
 | stav                                             | handling an exception, operate as Backup                                                                                                         |          |
-| RFC 2119 - Requirement levels                    | must, shall                                                                                                                                      |          |
 | musi-to-rozumnet (akce/slovesa)                  | toggle, calculate, store, read, copy, invoke, hold, execute, transmit, configure, operate, perform                                               |          |
 | entita                                           | register SRR0, R5, DTSCON, IVORx, Non-Volatile Memory, address 0xAA000018, signal [EngagementNoSat_u], DDS Topic 'MODESET_TOPIC', valid_range, d |          |
 | logicke spojky: ALL/ANY/NONE podminek            | ALL the following conditions, if ... otherwise                                                                                                   |          |

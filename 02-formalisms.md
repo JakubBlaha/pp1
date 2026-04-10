@@ -59,7 +59,6 @@ ENTITY <name> : <type>
 ```
 REQ <id> [<descriptive label>]
   TIER:    LTL | MTL | STL | TA
-  LEVEL:   shall | must
 
   TRIGGER: <event_expr>
   [GUARD:  <condition_expr>]
@@ -180,7 +179,6 @@ ENTITY Lon_u             : SIGNAL
 
 REQ 01 [Arithmetic / boolean operations]
   TIER:    STL
-  LEVEL:   shall
   TRIGGER: ALWAYS
   EFFECT:
     CALCULATE EngagementNoSat_u[k] =
@@ -212,7 +210,6 @@ ENTITY MEASUREMT_BLOCK    : MEMORY_REGION  NON_VOLATILE
 
 REQ 02 [Interface with hardware – NVM]
   TIER:    LTL
-  LEVEL:   shall
   TRIGGER: ALWAYS
   EFFECT:
     STORE max_exec_time_data TO MEASUREMT_BLOCK
@@ -236,7 +233,6 @@ ENTITY DTSCON            : REGISTER
 
 REQ 03 [Interface with hardware – CPU registers]
   TIER:    LTL
-  LEVEL:   must
   TRIGGER: ALWAYS
   EFFECT:  ORDERED
     1. READ  calibration_const FROM 0xAA000018
@@ -266,7 +262,6 @@ ENTITY MachineCheck  : ABSTRACT   // Exception Vector for machine check
 
 REQ 04 [Interrupt / exception handling – vector table config]
   TIER:    LTL
-  LEVEL:   must
   TRIGGER: ALWAYS
   EFFECT:
     CONFIGURE {
@@ -296,7 +291,6 @@ ENTITY software_execution      : ABSTRACT
 
 REQ 05 [Sequenced actions – exception handling procedure]
   TIER:    TA
-  LEVEL:   must
   TRIGGER: WHILE STATE(handling_exception)
   EFFECT:  ORDERED
     1. COPY SRR0 TO R5
@@ -324,7 +318,6 @@ ENTITY processor     : HARDWARE
 
 REQ 06 [Scheduling]
   TIER:     MTL
-  LEVEL:    must
   TRIGGER:  ON power_up(processor)
   DEADLINE: LESS_THAN 2 seconds
   EFFECT:
@@ -347,7 +340,6 @@ ENTITY MODESET_TOPIC  : DDS_TOPIC
 
 REQ 07 [I/O processing]
   TIER:    LTL
-  LEVEL:   shall
   TRIGGER: AFTER ON initialization
   EFFECT:
     TRANSMIT ModeEnable(value=TRUE) VIA MODESET_TOPIC
@@ -369,7 +361,6 @@ ENTITY MastershipInfo : DATATYPE  PARAMS { Mastership_b: ENUM }
 
 REQ 08 [State-machine logic]
   TIER:    LTL
-  LEVEL:   shall
   TRIGGER: ON receive(MastershipInfo, Mastership_b=BACKUP)
   EFFECT:
     SET_STATE Backup
@@ -394,7 +385,6 @@ ENTITY d           : SIGNAL
 
 REQ 09 [Timed operations]
   TIER:     STL
-  LEVEL:    must
   TRIGGER:  ON write(d)
   DEADLINE: WITHIN 500 ns
   GUARD:    ALL_OF {
