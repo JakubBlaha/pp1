@@ -21,3 +21,21 @@ Remove `AFTER <event>` and `WHILE STATE(<name>)` from the event expression vocab
 **Reason:**
 
 All triggers in the formalism are point events — they fire at a single instant. `WHILE STATE` and `AFTER` introduced implicit duration into the trigger, which cannot be directly tested and added no expressive power that explicit start/end events don't already provide. `AFTER ON x` is simply `ON x_end`; `WHILE STATE(x)` is simply `ON x_start`.
+
+---
+
+## POTENTIAL IMPROVEMENT: Explicit `ON START(x)` / `ON END(x)` syntax for durational events
+
+**Idea:**
+
+Instead of a naming convention (`ON exception_start`, `ON exception_end`), introduce structured syntax `ON START(x)` and `ON END(x)` for events that have duration. The formalism would attach an implicit axiom enforcing that every `START` is eventually followed by an `END` for the same event:
+
+```
+G( ON START(e) → F( ON END(e) ) )
+```
+
+Additional axioms could enforce that start and end don't fire simultaneously, and optionally that a new `START(e)` cannot fire while `e` is already active.
+
+**Benefit:** The pairing is explicit and machine-checkable rather than a naming convention. The syntax is self-documenting — `ON START(exception)` visually signals it is one half of a paired concept, unlike a flat event name.
+
+**Why not done yet:** Current naming convention is sufficient for the requirements at hand. This would be a natural next step when building a checker that needs to validate trace well-formedness.
