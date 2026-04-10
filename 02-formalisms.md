@@ -16,11 +16,11 @@ G( trigger ∧ guard  →  F[0, deadline]( effect ) )
 
 The formalism defined here is a structured front-end for three temporal logics and Timed Automata. The appropriate backend is chosen per requirement based on what the requirement contains:
 
-| Tier | Use when requirement contains |
-|------|-------------------------------|
+| Tier | Use when requirement contains                            |
+| ---- | -------------------------------------------------------- |
 | LTL  | Only ordering / causality, no time bounds, no arithmetic |
-| MTL  | Ordering + concrete time bounds, no arithmetic |
-| STL  | Time bounds + arithmetic on real-valued signals |
+| MTL  | Ordering + concrete time bounds, no arithmetic           |
+| STL  | Time bounds + arithmetic on real-valued signals          |
 | TA   | Multi-step procedure where each step is a discrete state |
 
 STL subsumes MTL which subsumes LTL, so a higher tier can always be used instead of a lower one — but a lower tier is preferred when it is sufficient, as it is easier to check.
@@ -42,15 +42,15 @@ ENTITY <name> : <type>
 
 ### Entity types
 
-| Type             | Meaning |
-|------------------|---------|
-| `SIGNAL`         | A software signal or variable |
-| `REGISTER`       | A hardware CPU register |
-| `MEMORY_REGION`  | A named region of memory |
-| `DDS_TOPIC`      | A DDS communication topic |
-| `DATATYPE`       | A structured data type with named parameters |
-| `HARDWARE`       | A hardware component (e.g. processor) |
-| `ABSTRACT`       | A higher-level entity not directly addressable |
+| Type            | Meaning                                        |
+| --------------- | ---------------------------------------------- |
+| `SIGNAL`        | A software signal or variable                  |
+| `REGISTER`      | A hardware CPU register                        |
+| `MEMORY_REGION` | A named region of memory                       |
+| `DDS_TOPIC`     | A DDS communication topic                      |
+| `DATATYPE`      | A structured data type with named parameters   |
+| `HARDWARE`      | A hardware component (e.g. processor)          |
+| `ABSTRACT`      | A higher-level entity not directly addressable |
 
 ---
 
@@ -72,67 +72,90 @@ REQ <id> [<descriptive label>]
 
 ## Event Expressions (TRIGGER)
 
-| Expression | Meaning |
-|------------|---------|
-| `ALWAYS` | No trigger; the property must hold at every instant |
-| `ON power_up(<entity>)` | Hardware power-up event |
-| `ON initialization` | End of software initialization phase |
-| `ON write(<entity>)` | A write operation to an entity |
-| `ON receive(<datatype> [, <param>=<value>])` | Receive a data instance |
-| `ON return(<entity>)` | An invoked routine returns |
-| `AFTER <event_expr>` | After (not during) the named event |
-| `WHILE STATE(<name>)` | While the system is in a named state |
+| Expression                                   | Meaning                                             |
+| -------------------------------------------- | --------------------------------------------------- |
+| `ALWAYS`                                     | No trigger; the property must hold at every instant |
+| `ON power_up(<entity>)`                      | Hardware power-up event                             |
+| `ON initialization`                          | End of software initialization phase                |
+| `ON write(<entity>)`                         | A write operation to an entity                      |
+| `ON receive(<datatype> [, <param>=<value>])` | Receive a data instance                             |
+| `ON return(<entity>)`                        | An invoked routine returns                          |
+| `AFTER <event_expr>`                         | After (not during) the named event                  |
+| `WHILE STATE(<name>)`                        | While the system is in a named state                |
 
 ---
 
 ## Conditions (GUARD)
 
-| Syntax | Meaning |
-|--------|---------|
-| `<expr> > <expr>` | Greater-than comparison |
-| `<expr> >= <expr>` | Greater-or-equal comparison |
-| `<expr> == <expr>` | Equality |
-| `<expr> IS <literal>` | Value equals a named constant (TRUE, BACKUP, …) |
-| `ALL_OF { <cond>, … }` | All conditions must hold |
-| `ANY_OF { <cond>, … }` | At least one condition must hold |
-| `NOT <cond>` | Negation |
+| Syntax                 | Meaning                                         |
+| ---------------------- | ----------------------------------------------- |
+| `<expr> > <expr>`      | Greater-than comparison                         |
+| `<expr> >= <expr>`     | Greater-or-equal comparison                     |
+| `<expr> == <expr>`     | Equality                                        |
+| `<expr> IS <literal>`  | Value equals a named constant (TRUE, BACKUP, …) |
+| `ALL_OF { <cond>, … }` | All conditions must hold                        |
+| `ANY_OF { <cond>, … }` | At least one condition must hold                |
+| `NOT <cond>`           | Negation                                        |
 
 ---
 
 ## Expressions
 
-| Syntax | Meaning |
-|--------|---------|
-| `<entity>` | Current value of entity |
-| `<entity>[k-1]` | Value at the previous discrete time step |
-| `PREV(<entity>)` | Alias for `<entity>[k-1]` |
-| `ADDR(<entity>)` | Memory address of entity |
-| `DIFF(<a>, <b>)` | Arithmetic difference `a − b` |
-| `SIGNED(<expr>)` | Interpret bit pattern as signed integer |
-| `MAX_PEAK(<entity>)` | Historical maximum peak value of entity |
-| `MIN_PEAK(<entity>)` | Historical minimum peak value of entity |
+| Syntax                                | Meaning                                            |
+| ------------------------------------- | -------------------------------------------------- |
+| `<entity>`                            | Current value of entity                            |
+| `<entity>[k-1]`                       | Value at the previous discrete time step           |
+| `PREV(<entity>)`                      | Alias for `<entity>[k-1]`                          |
+| `ADDR(<entity>)`                      | Memory address of entity                           |
+| `DIFF(<a>, <b>)`                      | Arithmetic difference `a − b`                      |
+| `SIGNED(<expr>)`                      | Interpret bit pattern as signed integer            |
+| `MAX_PEAK(<entity>)`                  | Historical maximum peak value of entity            |
+| `MIN_PEAK(<entity>)`                  | Historical minimum peak value of entity            |
 | `COUNT(ON <event>, SINCE ON <event>)` | Number of times event occurred since another event |
 
 ---
 
 ## Action Vocabulary (EFFECT)
 
-| Action | Meaning |
-|--------|---------|
-| `CALCULATE <entity> = <expr>` | Compute and assign a value |
-| `READ <entity> FROM <addr>` | Read value from a memory address |
-| `STORE <entity> TO <dst>` | Write value to a destination |
-| `COPY <src> TO <dst>` | Copy value between two locations |
-| `INVOKE <entity>` | Call a routine or handler |
-| `HOLD <entity>` | Suspend / freeze execution |
-| `TOGGLE <entity>` | Invert the boolean value of entity |
-| `TRANSMIT <entity>(<param>=<val>) VIA <channel>` | Send a signal over a channel |
-| `CONFIGURE { <entity> <- <expr>, … }` | Set registers or fields according to a mapping |
-| `SET_STATE <state_name>` | Transition to a named system state |
-| `START_EXECUTE <entity>` | Begin execution of a task or sequence |
-| `IF <cond> THEN <action>` | Conditional action (inline, within a step) |
+| Action                                           | Meaning                                        |
+| ------------------------------------------------ | ---------------------------------------------- |
+| `CALCULATE <entity> = <expr>`                    | Compute and assign a value                     |
+| `READ <entity> FROM <addr>`                      | Read value from a memory address               |
+| `STORE <entity> TO <dst>`                        | Write value to a destination                   |
+| `COPY <src> TO <dst>`                            | Copy value between two locations               |
+| `INVOKE <entity>`                                | Call a routine or handler                      |
+| `HOLD <entity>`                                  | Suspend / freeze execution                     |
+| `TOGGLE <entity>`                                | Invert the boolean value of entity             |
+| `TRANSMIT <entity>(<param>=<val>) VIA <channel>` | Send a signal over a channel                   |
+| `CONFIGURE { <entity> <- <expr>, … }`            | Set registers or fields according to a mapping |
+| `SET_STATE <state_name>`                         | Transition to a named system state             |
+| `START_EXECUTE <entity>`                         | Begin execution of a task or sequence          |
+| `IF <cond> THEN <action>`                        | Conditional action (inline, within a step)     |
 
 When `ORDERED` is present, the listed steps must execute in the given sequence. Each step is a state in the implied automaton (TA tier) or is expressed with `U` operators (LTL/MTL/STL tier).
+
+---
+
+## Effect Predicates
+
+Actions describe what the software *does*. Temporal logic formulas reason over *state* — what *holds* as a result. Each action has a corresponding **effect predicate** that captures the observable state produced by that action. These predicates are what appear in LTL/MTL/STL formulas.
+
+| Action                      | Effect predicate          | Meaning of predicate                                      |
+| --------------------------- | ------------------------- | --------------------------------------------------------- |
+| `CALCULATE e = expr`        | `e = expr`                | Entity `e` currently holds the computed value             |
+| `READ e FROM addr`          | `e = value_at(addr)`      | Entity `e` holds the value currently at `addr`            |
+| `STORE e TO dst`            | `value_at(dst) = e`       | Destination `dst` holds the value of `e`                  |
+| `COPY src TO dst`           | `dst = src`               | `dst` holds the same value as `src`                       |
+| `INVOKE f`                  | `invoked(f)`              | Routine `f` has been called                               |
+| `HOLD e`                    | `halted(e)`               | Execution of `e` is suspended                             |
+| `TOGGLE e`                  | `e = ¬prev(e)`            | `e` holds the boolean inverse of its previous value       |
+| `TRANSMIT e(p=v) VIA ch`    | `transmitted(e, p=v, ch)` | Signal `e` with parameter `p=v` was sent over `ch`        |
+| `CONFIGURE { k <- v }`      | `k = v`                   | Entity `k` holds value `v` (one clause per mapping entry) |
+| `SET_STATE s`               | `mode = s`                | System is currently in state `s`                          |
+| `START_EXECUTE seq`         | `executing(seq)`          | Sequence `seq` is currently running                       |
+| `ON return(f)` (as trigger) | `returned(f)`             | Routine `f` has returned                                  |
+
+The distinction matters: the *action* is an event that occurs at a point in time; the *predicate* is a proposition that holds in the state that follows. In a temporal formula, `F( effect )` means "there exists a future state where the effect predicate holds" — not "the action fires again".
 
 ---
 
