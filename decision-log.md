@@ -49,3 +49,21 @@ Additional axioms could enforce that start and end don't fire simultaneously, an
 **Reason:** `COPY` and `STORE` are semantically identical in the formalism — both move a value from a source to a destination with the same effect predicate (`value_at(dst) = src`). The distinction came from the English wording in the original requirement text, not from any formal difference. Having two verbs for the same operation is a source of inconsistency.
 
 **Affected:** REQ 05 step 1 changed from `COPY SRR0 TO R5` to `STORE SRR0 TO R5`. LTL formula updated accordingly.
+
+---
+
+## Keep both `PREV(x)` and `x[k-1]` — prefer `PREV` for readability
+
+**Decision:** Both notations remain in the formalism. `PREV(x)` is preferred in practice; `x[k-1]` is kept as the mathematical equivalent for reference.
+
+**Reason:** `PREV(x)` is easier to read and less likely to be confused with array indexing. The alias does not add expressive power but improves readability for people writing or reviewing requirements.
+
+---
+
+## Replace `ALWAYS` trigger with `MODALITY: INVARIANT | EVENTUAL`
+
+**Decision:** Remove `ALWAYS` from the event expressions. Untriggered requirements use a `MODALITY` field instead of `TRIGGER`. `MODALITY: INVARIANT` translates to `G(effect)`; `MODALITY: EVENTUAL` translates to `F(effect)`. `TRIGGER` and `MODALITY` are mutually exclusive.
+
+**Reason:** `ALWAYS` was overloaded — it was used for both continuous invariants (`G`) and one-time setup obligations (`F`), which translate to different formulas. Putting it in the `TRIGGER` field was also misleading, since there is no causing event. `MODALITY` makes the distinction explicit and keeps the `TRIGGER` field semantically clean.
+
+**Affected:** REQ 01 changed to `MODALITY: INVARIANT`. REQ 02, 03, 04 changed to `MODALITY: EVENTUAL`.

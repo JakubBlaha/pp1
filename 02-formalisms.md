@@ -60,13 +60,20 @@ ENTITY <name> : <type>
 REQ <id> [<descriptive label>]
   TIER:    LTL | MTL | STL | TA
 
+  // Option A — triggered requirement (event causes the effect)
   TRIGGER: <event_expr>
   [GUARD:  <condition_expr>]
   [DEADLINE: WITHIN <n> <unit> | LESS_THAN <n> <unit>]
+
+  // Option B — untriggered requirement (no causing event)
+  MODALITY: INVARIANT | EVENTUAL
+
   EFFECT: [ORDERED]
     [<n>.] <action_expr>
     ...
 ```
+
+`TRIGGER` and `MODALITY` are mutually exclusive. Use `TRIGGER` when an event causes the effect. Use `MODALITY` when the requirement is a bare obligation with no causing event: `INVARIANT` means the effect must hold at every instant (`G`); `EVENTUAL` means the effect must hold at some point (`F`).
 
 ---
 
@@ -74,7 +81,6 @@ REQ <id> [<descriptive label>]
 
 | Expression                                   | Meaning                                             |
 | -------------------------------------------- | --------------------------------------------------- |
-| `ALWAYS`                                     | No trigger; the property must hold at every instant |
 | `ON <event_name>`                            | A named point event fires                           |
 | `ON write(<entity>)`                         | A write operation to an entity                      |
 | `ON receive(<datatype> [, <param>=<value>])` | Receive a data instance                             |
@@ -157,17 +163,20 @@ The distinction matters: the *action* is an event that occurs at a point in time
 ## Temporal Logic Translation Reference
 
 ```c
-// LTL
+// Triggered (LTL)
 G( trigger ∧ guard  →  F( effect ) )
 
-// MTL  (d = deadline value with unit)
+// Triggered with deadline (MTL/STL)
 G( trigger ∧ guard  →  F[0,d]( effect ) )
 
-// STL  (same shape; predicates may be arithmetic over real-valued signals)
-G( trigger ∧ guard  →  F[0,d]( effect ) )
-
-// Ordered steps (LTL)
+// Triggered, ordered steps (LTL)
 G( trigger  →  step1 U (step2 U step3) )
+
+// Untriggered, INVARIANT
+G( effect )
+
+// Untriggered, EVENTUAL
+F( effect )
 
 // Initial condition (STL)
 <entity>[0] = <value>
@@ -196,8 +205,8 @@ ENTITY Switch_b          : SIGNAL
 ENTITY Lon_u             : SIGNAL
 
 REQ 01 [Arithmetic / boolean operations]
-  TIER:    STL
-  TRIGGER: ALWAYS
+  TIER:     STL
+  MODALITY: INVARIANT
   EFFECT:
     CALCULATE EngagementNoSat_u[k] =
       IF Switch_b IS TRUE:
@@ -227,13 +236,13 @@ ENTITY max_exec_time_data : ABSTRACT
 ENTITY MEASUREMT_BLOCK    : MEMORY_REGION  NON_VOLATILE
 
 REQ 02 [Interface with hardware – NVM]
-  TIER:    LTL
-  TRIGGER: ALWAYS
+  TIER:     LTL
+  MODALITY: EVENTUAL
   EFFECT:
     STORE max_exec_time_data TO MEASUREMT_BLOCK
 
 // LTL
-G( F( stored(max_exec_time_data, MEASUREMT_BLOCK) ) )
+F( value_at(MEASUREMT_BLOCK) = max_exec_time_data )
 ```
 
 ## 03
@@ -250,15 +259,15 @@ ENTITY calibration_const : ABSTRACT  ADDRESS 0xAA000018
 ENTITY DTSCON            : REGISTER
 
 REQ 03 [Interface with hardware – CPU registers]
-  TIER:    LTL
-  TRIGGER: ALWAYS
+  TIER:     LTL
+  MODALITY: EVENTUAL
   EFFECT:  ORDERED
     1. READ  calibration_const FROM 0xAA000018
     2. STORE calibration_const TO DTSCON
 
 // LTL (ordering via U)
-G( F( read(calibration_const, 0xAA000018)
-      U stored(calibration_const, DTSCON) ) )
+F( (calibration_const = value_at(0xAA000018))
+   U (value_at(DTSCON) = calibration_const) )
 ```
 
 ## 04
@@ -279,8 +288,8 @@ ENTITY CriticalInput : ABSTRACT   // Exception Vector for critical input
 ENTITY MachineCheck  : ABSTRACT   // Exception Vector for machine check
 
 REQ 04 [Interrupt / exception handling – vector table config]
-  TIER:    LTL
-  TRIGGER: ALWAYS
+  TIER:     LTL
+  MODALITY: EVENTUAL
   EFFECT:
     STORE ADDR(CriticalInput) TO IVOR0
     STORE ADDR(MachineCheck)  TO IVOR1
@@ -317,8 +326,8 @@ REQ 05 [Sequenced actions – exception handling procedure]
 // LTL (ordering via U; step 3 is conditional)
 G( exception_start →
      R5 = SRR0
-     U (invoke(image_exception_handler)
-        U (returns(image_exception_handler) → hold(software_execution))) )
+     U (invoked(image_exception_handler)
+        U (returned(image_exception_handler) → halted(software_execution))) )
 ```
 
 ## 06
