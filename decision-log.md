@@ -107,3 +107,13 @@ Additional axioms could enforce that start and end don't fire simultaneously, an
 **Reason:** A `SIGNAL` lives inside the software; a `DATATYPE` instance is what gets put on a communication channel. The distinction was missing in REQ 07 — `SIGNAL` was used for something transmitted over a DDS topic, which is inconsistent with REQ 08 which correctly used `DATATYPE` for received data. A single-value datatype is just a `DATATYPE` with one parameter, not a fundamentally different thing.
 
 **Affected:** REQ 07 `ModeEnable` changed from `SIGNAL` to `DATATYPE PARAMS { value: BOOL }`.
+
+---
+
+## Introduce `STATE` entity type; `SET_STATE` effect predicate is `in_state(s)`
+
+**Decision:** Add `STATE` as a distinct entity type for named behavioral modes. `SET_STATE` remains a separate action (not collapsed into `CALCULATE`) and its effect predicate is `in_state(s)`. The implicit `mode` variable is removed — the state entity is declared explicitly.
+
+**Reason:** A state is not just a variable value — it carries a named behavioral contract. When the system is in `Backup`, there is an implied set of behaviors that go with it, which separate requirements can test against. Reducing `SET_STATE` to `CALCULATE system_mode = BACKUP` would lose this meaning and make the state indistinguishable from a plain signal assignment. Declaring the state as an entity also makes the `in_state(s)` predicate well-typed and checkable by a test.
+
+**Affected:** `STATE` added to entity type table and declaration syntax. REQ 08 gains `ENTITY Backup : STATE` declaration. Formula updated from `mode = BACKUP` to `in_state(Backup)`.

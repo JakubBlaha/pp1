@@ -46,6 +46,8 @@ ENTITY <name> : DATATYPE
 
 ENTITY <name> : HARDWARE
 
+ENTITY <name> : STATE               // no modifiers — a named behavioral mode
+
 ENTITY <name> : ABSTRACT            // no modifiers — by definition not directly addressable
 ```
 
@@ -58,6 +60,7 @@ ENTITY <name> : ABSTRACT            // no modifiers — by definition not direct
 | `DDS_TOPIC` | A DDS communication topic; used as the channel in `TRANSMIT … VIA`                    |
 | `DATATYPE`  | Data transmitted or received over a channel; used with `TRANSMIT` and `ON receive`    |
 | `HARDWARE`  | A hardware component (e.g. processor)                                                  |
+| `STATE`     | A named behavioral mode the system can be in; used with `SET_STATE`                   |
 | `ABSTRACT`  | A named concept the requirement refers to but that has no known address or structure   |
 
 ### Storage attributes (examples)
@@ -171,7 +174,7 @@ Actions describe what the software *does*. Temporal logic formulas reason over *
 | `HOLD e`                    | `halted(e)`               | Execution of `e` is suspended                       |
 | `TOGGLE e`                  | `e = ¬prev(e)`            | `e` holds the boolean inverse of its previous value |
 | `TRANSMIT e(p=v) VIA ch`    | `transmitted(e, p=v, ch)` | Signal `e` with parameter `p=v` was sent over `ch`  |
-| `SET_STATE s`               | `mode = s`                | System is currently in state `s`                    |
+| `SET_STATE s`               | `in_state(s)`             | System is currently in state `s`                    |
 | `ON return(f)` (as trigger) | `returned(f)`             | Routine `f` has returned                            |
 
 The distinction matters: the *action* is an event that occurs at a point in time; the *predicate* is a proposition that holds in the state that follows. In a temporal formula, `F( effect )` means "there exists a future state where the effect predicate holds" — not "the action fires again".
