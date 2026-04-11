@@ -87,3 +87,23 @@ Additional axioms could enforce that start and end don't fire simultaneously, an
 **Reason:** The previous generic syntax `ENTITY <name> : <type> [ADDRESS …] [ATTRIBUTES …] …` allowed any modifier on any type, which led to contradictions like `ABSTRACT ADDRESS 0xAA000018`. An entity with a known concrete address is by definition addressable and should be `STORAGE`, not `ABSTRACT`.
 
 **Affected:** REQ 03 `calibration_const` changed from `ABSTRACT ADDRESS 0xAA000018` to `STORAGE ADDRESS 0xAA000018`.
+
+---
+
+## Merge `START_EXECUTE` into `INVOKE`; use `invoked(x)` as a point-in-time predicate
+
+**Decision:** Remove `START_EXECUTE` from the action vocabulary. Use `INVOKE` for all cases where the software triggers execution of something — whether a handler routine or a task sequence. The effect predicate is `invoked(x)` in both cases, representing the point in time when execution was triggered, not an ongoing state.
+
+**Reason:** `executing(seq)` was a continuous state predicate, inconsistent with the principle that all effects are point-in-time observations. Starting execution of a task sequence always involves invoking some scheduler or entry point — the action is a point event. `invoked(x)` captures this correctly. Having two verbs (`INVOKE` vs `START_EXECUTE`) for the same concept added vocabulary without adding meaning.
+
+**Affected:** REQ 06 action changed from `START_EXECUTE task_sequence` to `INVOKE task_sequence`, formula updated to use `invoked(task_sequence)`.
+
+---
+
+## `TRANSMIT`/`ON receive` operate on `DATATYPE` only; `SIGNAL` is software-internal
+
+**Decision:** `TRANSMIT` and `ON receive(...)` only ever operate on `DATATYPE` entities. `SIGNAL` entities are software-internal and only appear in actions like `CALCULATE`, `STORE`, `READ`, `TOGGLE`. REQ 07's `ModeEnable` changed from `SIGNAL` to `DATATYPE PARAMS { value: BOOL }`.
+
+**Reason:** A `SIGNAL` lives inside the software; a `DATATYPE` instance is what gets put on a communication channel. The distinction was missing in REQ 07 — `SIGNAL` was used for something transmitted over a DDS topic, which is inconsistent with REQ 08 which correctly used `DATATYPE` for received data. A single-value datatype is just a `DATATYPE` with one parameter, not a fundamentally different thing.
+
+**Affected:** REQ 07 `ModeEnable` changed from `SIGNAL` to `DATATYPE PARAMS { value: BOOL }`.
