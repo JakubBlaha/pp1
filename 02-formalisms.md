@@ -33,24 +33,34 @@ Entities are the nouns: things that hold or carry values.
 
 ```
 ENTITY <name> : <type>
-  [ADDRESS <hex_addr>]          // exact memory address
-  [REGION <region_name>]        // named memory region
-  [VOLATILE | NON_VOLATILE]     // memory kind
-  [INITIAL <value>]             // initial / default value
-  [PARAMS { <param>: <type> }]  // for structured datatypes
+  [ADDRESS <hex_addr>]              // exact memory address
+  [ATTRIBUTES { <attr>, … }]        // observable attributes of the entity
+  [INITIAL <value>]                 // initial / default value
+  [PARAMS { <param>: <type> }]      // for structured datatypes
 ```
 
 ### Entity types
 
-| Type            | Meaning                                        |
-| --------------- | ---------------------------------------------- |
-| `SIGNAL`        | A software signal or variable                  |
-| `REGISTER`      | A hardware CPU register                        |
-| `MEMORY_REGION` | A named region of memory                       |
-| `DDS_TOPIC`     | A DDS communication topic                      |
-| `DATATYPE`      | A structured data type with named parameters   |
-| `HARDWARE`      | A hardware component (e.g. processor)          |
-| `ABSTRACT`      | A higher-level entity not directly addressable |
+| Type       | Meaning                                        |
+| ---------- | ---------------------------------------------- |
+| `SIGNAL`   | A software signal or variable                  |
+| `STORAGE`  | Any addressable location that holds a value (register, memory address, memory region) |
+| `DDS_TOPIC`| A DDS communication topic                      |
+| `DATATYPE` | A structured data type with named parameters   |
+| `HARDWARE` | A hardware component (e.g. processor)          |
+| `ABSTRACT` | A higher-level entity not directly addressable |
+
+`STORAGE` replaces the former `REGISTER` and `MEMORY_REGION` types. What kind of storage it is (e.g. a CPU register, NVM region, RAM address) is expressed via `ATTRIBUTES` rather than the type. This keeps the formalism agnostic about hardware details while still making attributes verifiable in a test.
+
+### Storage attributes (examples)
+
+| Attribute      | Meaning                                    |
+| -------------- | ------------------------------------------ |
+| `NON_VOLATILE` | Value persists across power cycles         |
+| `VOLATILE`     | Value is lost on power loss                |
+| `REGISTER`     | A CPU register                             |
+
+Attributes appear in formulas as `has_attribute(<entity>, <attr>)` and can be checked by a test case independently of the stored value.
 
 ---
 
@@ -148,6 +158,7 @@ Actions describe what the software *does*. Temporal logic formulas reason over *
 | `CALCULATE e = expr`        | `e = expr`                | Entity `e` currently holds the computed value       |
 | `READ e FROM addr`          | `e = value_at(addr)`      | Entity `e` holds the value currently at `addr`      |
 | `STORE e TO dst`            | `value_at(dst) = e`       | Destination `dst` holds the value of `e`            |
+| *(entity attribute)*        | `has_attribute(e, attr)`  | Entity `e` has the named attribute (e.g. `NON_VOLATILE`) |
 | `INVOKE f`                  | `invoked(f)`              | Routine `f` has been called                         |
 | `HOLD e`                    | `halted(e)`               | Execution of `e` is suspended                       |
 | `TOGGLE e`                  | `e = ¬prev(e)`            | `e` holds the boolean inverse of its previous value |

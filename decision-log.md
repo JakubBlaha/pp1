@@ -67,3 +67,13 @@ Additional axioms could enforce that start and end don't fire simultaneously, an
 **Reason:** `ALWAYS` was overloaded — it was used for both continuous invariants (`G`) and one-time setup obligations (`F`), which translate to different formulas. Putting it in the `TRIGGER` field was also misleading, since there is no causing event. `MODALITY` makes the distinction explicit and keeps the `TRIGGER` field semantically clean.
 
 **Affected:** REQ 01 changed to `MODALITY: INVARIANT`. REQ 02, 03, 04 changed to `MODALITY: EVENTUAL`.
+
+---
+
+## Collapse `REGISTER` and `MEMORY_REGION` into `STORAGE` with `ATTRIBUTES`
+
+**Decision:** Remove `REGISTER` and `MEMORY_REGION` as distinct entity types. Replace both with `STORAGE`. What kind of storage an entity is (CPU register, NVM region, RAM address, etc.) is expressed via an `ATTRIBUTES { … }` field. Storage attributes are verifiable predicates: `has_attribute(e, attr)` appears in formulas and can be independently checked by a test.
+
+**Reason:** Baking memory volatility and register-vs-memory into the type system encoded hardware domain knowledge in the formalism rather than in verifiable predicates. A register and a memory region are both just addressable locations that hold values — the distinction is an attribute, not a fundamentally different kind of thing. This also means the formalism does not need to be extended for every new hardware-specific category; attributes are open-ended.
+
+**Affected:** Entity declarations in REQ 02, 03, 04, 05 updated to use `STORAGE ATTRIBUTES { … }`. REQ 02 formula gains `∧ has_attribute(MEASUREMT_BLOCK, NON_VOLATILE)` to make the non-volatility constraint explicitly testable.
