@@ -44,8 +44,6 @@ ENTITY <name> : DDS_TOPIC
 ENTITY <name> : DATATYPE
   [PARAMS { <param>: <type>, … }]   // named parameters of the datatype
 
-ENTITY <name> : HARDWARE
-
 ENTITY <name> : STATE               // no modifiers — a named behavioral mode
 
 ENTITY <name> : ABSTRACT            // no modifiers — by definition not directly addressable
@@ -55,13 +53,12 @@ ENTITY <name> : ABSTRACT            // no modifiers — by definition not direct
 
 | Type        | Meaning                                                                                |
 | ----------- | -------------------------------------------------------------------------------------- |
-| `SIGNAL`    | A software-internal variable; used with `CALCULATE`, `STORE`, `READ`, `TOGGLE`        |
+| `SIGNAL`    | A software-internal variable; used with `CALCULATE`, `STORE`, `READ`, `TOGGLE`         |
 | `STORAGE`   | Any addressable location that holds a value (CPU register, memory address, NVM region) |
-| `DDS_TOPIC` | A DDS communication topic; used as the channel in `TRANSMIT … VIA`                    |
-| `DATATYPE`  | Data transmitted or received over a channel; used with `TRANSMIT` and `ON receive`    |
-| `HARDWARE`  | A hardware component (e.g. processor)                                                  |
-| `STATE`     | A named behavioral mode the system can be in; used with `SET_STATE`                   |
-| `ABSTRACT`  | A named concept the requirement refers to but that has no known address or structure   |
+| `DDS_TOPIC` | A DDS communication topic; used as the channel in `TRANSMIT … VIA`                     |
+| `DATATYPE`  | Data transmitted or received over a channel; used with `TRANSMIT` and `ON receive`     |
+| `STATE`     | A named behavioral mode the system can be in; used with `SET_STATE`                    |
+| `ABSTRACT`  | A named concept the requirement refers to but that has no known address or structure (e.g. a hardware component, a logical process) |
 
 ### Storage attributes (examples)
 
@@ -128,56 +125,41 @@ Events that have duration are modelled as two point events: `ON <name>_start` an
 
 ## Expressions
 
-| Syntax                                | Meaning                                            |
-| ------------------------------------- | -------------------------------------------------- |
-| `<entity>`                            | Current value of entity                            |
-| `<entity>[k-1]`                       | Value at the previous discrete time step           |
-| `PREV(<entity>)`                      | Alias for `<entity>[k-1]`                          |
-| `ADDR(<entity>)`                      | Memory address of entity                           |
-| `DIFF(<a>, <b>)`                      | Arithmetic difference `a − b`                      |
-| `SIGNED(<expr>)`                      | Interpret bit pattern as signed integer            |
-| `MAX_PEAK(<entity>)`                  | Historical maximum peak value of entity            |
-| `MIN_PEAK(<entity>)`                  | Historical minimum peak value of entity            |
-| `COUNT(ON <event>, SINCE ON <event>)` | Number of times event occurred since another event |
+| Syntax                                | Meaning                                                           |
+| ------------------------------------- | ----------------------------------------------------------------- |
+| `<entity>`                            | Current value of entity                                           |
+| `<entity>[k-1]`                       | Value at the previous discrete time step                          |
+| `PREV(<entity>)`                      | Alias for `<entity>[k-1]`                                         |
+| `ADDR(<entity>)`                      | Memory address of entity                                          |
+| `DIFF(<a>, <b>)`                      | Arithmetic difference `a − b`                                     |
+| `SIGNED(<expr>)`                      | Interpret bit pattern as signed integer                           |
+| `MAX_PEAK(<entity>)`                  | Historical maximum peak value of entity                           |
+| `MIN_PEAK(<entity>)`                  | Historical minimum peak value of entity                           |
+| `COUNT(ON <event>)`                   | Total number of times event has occurred                          |
+| `COUNT(ON <event>, SINCE ON <event>)` | Number of times event occurred since another event                |
+| `INTERVAL(ON <event>, <n>)`           | Time span between the 1st and nth most recent occurrence of event |
 
 ---
 
 ## Action Vocabulary (EFFECT)
 
-| Action                                           | Meaning                                    |
-| ------------------------------------------------ | ------------------------------------------ |
-| `CALCULATE <entity> = <expr>`                    | Compute and assign a value                 |
-| `READ <entity> FROM <addr>`                      | Read value from a memory address           |
-| `STORE <entity> TO <dst>`                        | Write value to a destination               |
-| `INVOKE <entity>`                                | Call a routine or handler                  |
-| `HOLD <entity>`                                  | Suspend / freeze execution                 |
-| `TOGGLE <entity>`                                | Invert the boolean value of entity         |
-| `TRANSMIT <entity>(<param>=<val>) VIA <channel>` | Send a signal over a channel               |
-| `SET_STATE <state_name>`                         | Transition to a named system state         |
-| `IF <cond> THEN <action>`                        | Conditional action (inline, within a step) |
+The action is an imperative operation that occurs at a point in time. The effect predicate is the observable proposition that holds in the resulting state — this is what appears in LTL/MTL/STL formulas and in `CHECK` assertions in test cases.
+
+| Action                                           | Meaning                                    | Effect predicate          |
+| ------------------------------------------------ | ------------------------------------------ | ------------------------- |
+| `CALCULATE <entity> = <expr>`                    | Compute and assign a value                 | `e = expr`                |
+| `READ <entity> FROM <addr>`                      | Read value from a memory address           | `e = value_at(addr)`      |
+| `STORE <entity> TO <dst>`                        | Write value to a destination               | `value_at(dst) = e`       |
+| `INVOKE <entity>`                                | Call a routine or handler                  | `invoked(f)`              |
+| `HOLD <entity>`                                  | Suspend / freeze execution                 | `halted(e)`               |
+| `TOGGLE <entity>`                                | Invert the boolean value of entity         | `e = ¬prev(e)`            |
+| `TRANSMIT <entity>(<param>=<val>) VIA <channel>` | Send a signal over a channel               | `transmitted(e, p=v, ch)` |
+| `SET_STATE <state_name>`                         | Transition to a named system state         | `in_state(s)`             |
+| `IF <cond> THEN <action>`                        | Conditional action (inline, within a step) | *(predicate of inner action)* |
+| `ON return(f)` *(as trigger)*                    | A routine has returned                     | `returned(f)`             |
+| *(entity attribute)*                             | Structural property of an entity           | `has_attribute(e, attr)`  |
 
 When `ORDERED` is present, the listed steps must execute in the given sequence. Each step is a state in the implied automaton (TA tier) or is expressed with `U` operators (LTL/MTL/STL tier).
-
----
-
-## Effect Predicates
-
-Actions describe what the software *does*. Temporal logic formulas reason over *state* — what *holds* as a result. Each action has a corresponding **effect predicate** that captures the observable state produced by that action. These predicates are what appear in LTL/MTL/STL formulas.
-
-| Action                      | Effect predicate          | Meaning of predicate                                |
-| --------------------------- | ------------------------- | --------------------------------------------------- |
-| `CALCULATE e = expr`        | `e = expr`                | Entity `e` currently holds the computed value       |
-| `READ e FROM addr`          | `e = value_at(addr)`      | Entity `e` holds the value currently at `addr`      |
-| `STORE e TO dst`            | `value_at(dst) = e`       | Destination `dst` holds the value of `e`            |
-| *(entity attribute)*        | `has_attribute(e, attr)`  | Entity `e` has the named attribute (e.g. `NON_VOLATILE`) |
-| `INVOKE f`                  | `invoked(f)`              | Routine `f` has been called                         |
-| `HOLD e`                    | `halted(e)`               | Execution of `e` is suspended                       |
-| `TOGGLE e`                  | `e = ¬prev(e)`            | `e` holds the boolean inverse of its previous value |
-| `TRANSMIT e(p=v) VIA ch`    | `transmitted(e, p=v, ch)` | Signal `e` with parameter `p=v` was sent over `ch`  |
-| `SET_STATE s`               | `in_state(s)`             | System is currently in state `s`                    |
-| `ON return(f)` (as trigger) | `returned(f)`             | Routine `f` has returned                            |
-
-The distinction matters: the *action* is an event that occurs at a point in time; the *predicate* is a proposition that holds in the state that follows. In a temporal formula, `F( effect )` means "there exists a future state where the effect predicate holds" — not "the action fires again".
 
 ---
 
@@ -202,3 +184,47 @@ F( effect )
 // Initial condition (STL)
 <entity>[0] = <value>
 ```
+
+---
+
+## Test Case Structure
+
+A test case injects stimuli and observes effects. It reuses entity names, event names, effect predicates, and deadlines from the requirement formalism.
+
+```
+TEST <id> FOR REQ <id>
+  [SETUP:
+    WRITE <entity> = <value>        // set preconditions
+    ...]
+  STIMULUS: [ORDERED]
+    [<n>.] FIRE <event_expr>        // inject a point event
+             [DELAY <n> <unit>]     // time after previous stimulus step
+    ...
+  OBSERVE:
+    CHECK [NOT] <effect_predicate>  // verify the effect (or its absence)
+    [WITHIN <n> <unit>]             // REQUIRED when requirement has DEADLINE
+```
+
+`FIRE` is the tester's action — it injects a named event into the system. `CHECK` evaluates an effect predicate from the requirement's effect predicate table. `NOT` tests that the effect does NOT hold (negative / robustness test cases).
+
+`WITHIN` in `OBSERVE` is **mandatory** when the requirement has a `DEADLINE` field — it is not optional in that case. Omitting it means the test verifies the effect happened but not that it happened in time, which is a separate and required obligation.
+
+**Coverage analysis procedure:**
+
+1. List all predicates referenced in the trigger and effect (the *predicate space*).
+2. Enumerate the combinations of trigger predicates that matter, guided by the requirement structure (MC/DC for `ALL_OF`, independence for `ANY_OF`). Full 2^n enumeration is not needed.
+3. For each combination, evaluate the formula — does the trigger fire? This determines whether the effect must be true or false.
+4. Each combination is a test obligation. Map existing test cases to obligations.
+5. Any obligation with no matching test case is a coverage gap.
+
+**Coverage obligations** are derived mechanically from the requirement structure:
+
+| Requirement feature         | Coverage obligations generated                                                                |
+| --------------------------- | --------------------------------------------------------------------------------------------- |
+| `GUARD: ALL_OF { A, B, … }` | Each condition independently true while others false (MC/DC)                                  |
+| `GUARD: ANY_OF { A, B, … }` | Each condition independently true (one per test); all false (negative)                        |
+| `DEADLINE: WITHIN d`        | At least one test with `CHECK effect WITHIN d`; at least one boundary test near `d`           |
+| Negative case               | At least one test where the trigger fires but the guard is not satisfied → `CHECK NOT effect` |
+
+All obligations must be matched by at least one test for full coverage.
+---

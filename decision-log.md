@@ -117,3 +117,23 @@ Additional axioms could enforce that start and end don't fire simultaneously, an
 **Reason:** A state is not just a variable value — it carries a named behavioral contract. When the system is in `Backup`, there is an implied set of behaviors that go with it, which separate requirements can test against. Reducing `SET_STATE` to `CALCULATE system_mode = BACKUP` would lose this meaning and make the state indistinguishable from a plain signal assignment. Declaring the state as an entity also makes the `in_state(s)` predicate well-typed and checkable by a test.
 
 **Affected:** `STATE` added to entity type table and declaration syntax. REQ 08 gains `ENTITY Backup : STATE` declaration. Formula updated from `mode = BACKUP` to `in_state(Backup)`.
+
+---
+
+## Replace `COUNT(..., WITHIN d)` with separate `COUNT` and `INTERVAL` expressions
+
+**Decision:** Remove `COUNT(ON <event>, WITHIN <n> <unit>)` as a combined expression. Replace with two separate atomic expressions: `COUNT(ON <event>, SINCE ON <event>)` for occurrence count and `INTERVAL(ON <event>, <n>)` for the time span between the 1st and nth most recent occurrence. A timed recurrence condition like "twice in less than 10s" is expressed as `ALL_OF { COUNT(...) >= 2, INTERVAL(..., 2) < 10s }`.
+
+**Reason:** `COUNT(..., WITHIN d)` conflated two independently testable boolean conditions — whether enough occurrences happened, and whether they happened close enough in time. Conflating them hides coverage obligations: a test that fires the event twice at 11s satisfies the count but not the timing, which is a distinct and required negative test case. Separating the two expressions makes each an independent axis in the MC/DC coverage table.
+
+**Affected:** Expressions table updated. REQ 10 trigger and formula rewritten with explicit `COUNT` and `INTERVAL` conditions. Coverage analysis table updated to reflect two independent axes per failure type.
+
+---
+
+## `DEADLINE` generates mandatory `WITHIN` in test OBSERVE and a boundary coverage obligation
+
+**Decision:** `WITHIN` in test `OBSERVE` is mandatory (not optional) when the requirement has a `DEADLINE` field. Omitting it means the test only verifies the effect happened, not that it happened in time — these are two independently testable axes. The `DEADLINE` field also generates a second coverage obligation: a boundary test near the deadline value (both within and just beyond).
+
+**Reason:** Same principle as the COUNT/INTERVAL split — bundling "effect happens" and "effect happens in time" into a single check hides a coverage obligation. A passing correctness test does not imply the timing was verified. The deadline is an independent boolean axis that must appear explicitly in the MC/DC coverage table.
+
+**Affected:** Test Case Structure section updated — `WITHIN` is marked as required when DEADLINE is present. Coverage obligations table added to framework. REQ 09 gains explicit coverage obligations table.
