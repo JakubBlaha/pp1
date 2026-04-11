@@ -29,38 +29,46 @@ STL subsumes MTL which subsumes LTL, so a higher tier can always be used instead
 
 ## Entity Declarations
 
-Entities are the nouns: things that hold or carry values.
+Entities are the nouns: things that hold or carry values. Each type has its own set of valid modifiers.
 
 ```
-ENTITY <name> : <type>
-  [ADDRESS <hex_addr>]              // exact memory address
-  [ATTRIBUTES { <attr>, … }]        // observable attributes of the entity
-  [INITIAL <value>]                 // initial / default value
-  [PARAMS { <param>: <type> }]      // for structured datatypes
+ENTITY <name> : SIGNAL
+  [INITIAL <value>]                 // default value at time 0
+
+ENTITY <name> : STORAGE
+  [ADDRESS <hex_addr>]              // exact memory address (required if known)
+  [ATTRIBUTES { <attr>, … }]        // observable attributes, e.g. NON_VOLATILE, REGISTER
+
+ENTITY <name> : DDS_TOPIC
+
+ENTITY <name> : DATATYPE
+  [PARAMS { <param>: <type>, … }]   // named parameters of the datatype
+
+ENTITY <name> : HARDWARE
+
+ENTITY <name> : ABSTRACT            // no modifiers — by definition not directly addressable
 ```
 
 ### Entity types
 
-| Type       | Meaning                                        |
-| ---------- | ---------------------------------------------- |
-| `SIGNAL`   | A software signal or variable                  |
-| `STORAGE`  | Any addressable location that holds a value (register, memory address, memory region) |
-| `DDS_TOPIC`| A DDS communication topic                      |
-| `DATATYPE` | A structured data type with named parameters   |
-| `HARDWARE` | A hardware component (e.g. processor)          |
-| `ABSTRACT` | A higher-level entity not directly addressable |
-
-`STORAGE` replaces the former `REGISTER` and `MEMORY_REGION` types. What kind of storage it is (e.g. a CPU register, NVM region, RAM address) is expressed via `ATTRIBUTES` rather than the type. This keeps the formalism agnostic about hardware details while still making attributes verifiable in a test.
+| Type        | Meaning                                                                                |
+| ----------- | -------------------------------------------------------------------------------------- |
+| `SIGNAL`    | A software signal or variable                                                          |
+| `STORAGE`   | Any addressable location that holds a value (CPU register, memory address, NVM region) |
+| `DDS_TOPIC` | A DDS communication topic                                                              |
+| `DATATYPE`  | A structured data type with named parameters                                           |
+| `HARDWARE`  | A hardware component (e.g. processor)                                                  |
+| `ABSTRACT`  | A named concept the requirement refers to but that has no known address or structure   |
 
 ### Storage attributes (examples)
 
-| Attribute      | Meaning                                    |
-| -------------- | ------------------------------------------ |
-| `NON_VOLATILE` | Value persists across power cycles         |
-| `VOLATILE`     | Value is lost on power loss                |
-| `REGISTER`     | A CPU register                             |
+| Attribute      | Meaning                            |
+| -------------- | ---------------------------------- |
+| `NON_VOLATILE` | Value persists across power cycles |
+| `VOLATILE`     | Value is lost on power loss        |
+| `REGISTER`     | A CPU register                     |
 
-Attributes appear in formulas as `has_attribute(<entity>, <attr>)` and can be checked by a test case independently of the stored value.
+Attributes appear in formulas as `has_attribute(<entity>, <attr>)` and can be checked by a test independently of the stored value.
 
 ---
 

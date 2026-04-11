@@ -77,3 +77,13 @@ Additional axioms could enforce that start and end don't fire simultaneously, an
 **Reason:** Baking memory volatility and register-vs-memory into the type system encoded hardware domain knowledge in the formalism rather than in verifiable predicates. A register and a memory region are both just addressable locations that hold values — the distinction is an attribute, not a fundamentally different kind of thing. This also means the formalism does not need to be extended for every new hardware-specific category; attributes are open-ended.
 
 **Affected:** Entity declarations in REQ 02, 03, 04, 05 updated to use `STORAGE ATTRIBUTES { … }`. REQ 02 formula gains `∧ has_attribute(MEASUREMT_BLOCK, NON_VOLATILE)` to make the non-volatility constraint explicitly testable.
+
+---
+
+## Clarify entity modifiers per type; fix `ABSTRACT` + `ADDRESS` contradiction
+
+**Decision:** The entity declaration syntax now specifies which modifiers are valid for each type. `ABSTRACT` accepts no modifiers by definition — it is a named concept with no known address or structure. `ADDRESS` and `ATTRIBUTES` are only valid on `STORAGE`. `INITIAL` is only valid on `SIGNAL`. `PARAMS` is only valid on `DATATYPE`.
+
+**Reason:** The previous generic syntax `ENTITY <name> : <type> [ADDRESS …] [ATTRIBUTES …] …` allowed any modifier on any type, which led to contradictions like `ABSTRACT ADDRESS 0xAA000018`. An entity with a known concrete address is by definition addressable and should be `STORAGE`, not `ABSTRACT`.
+
+**Affected:** REQ 03 `calibration_const` changed from `ABSTRACT ADDRESS 0xAA000018` to `STORAGE ADDRESS 0xAA000018`.
