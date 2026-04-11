@@ -67,6 +67,7 @@ ENTITY <name> : ABSTRACT            // no modifiers — by definition not direct
 | `NON_VOLATILE` | Value persists across power cycles |
 | `VOLATILE`     | Value is lost on power loss        |
 | `REGISTER`     | A CPU register                     |
+| `MEMORY`       | A memory location (not a register) |
 
 Attributes appear in formulas as `has_attribute(<entity>, <attr>)` and can be checked by a test independently of the stored value.
 
