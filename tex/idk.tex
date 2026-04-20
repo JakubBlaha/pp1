@@ -1,0 +1,216 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{stmaryrd}
+
+\newtheorem{definition}{Definition}
+
+\title{PP1 - Vyhodnocování úplnosti testů vůči softwarovým požadavkům - formalizmus}
+\author{ }
+\date{April 2026}
+
+\begin{document}
+
+\maketitle
+
+\section{Primitive Domains}
+
+\begin{tabularx}{\textwidth}{llX}
+    \toprule
+    \textbf{Domain} & \textbf{Symbol} & \textbf{Definition}                                                       \\
+    \midrule
+    Time            & $\mathbf{T}$    & Totally ordered set; one flavour chosen per requirement.                  \\
+    Values          & $\mathbf{V}$    & Booleans, integers, reals, enumerations, bit-vectors, structured records. \\
+    \bottomrule
+\end{tabularx}
+
+\medskip
+For each requirement exactly one interpretation of $\mathbf{T}$ is fixed:
+
+\begin{tabularx}{\textwidth}{llX}
+    \toprule
+    \textbf{Flavour} & \textbf{Carrier}                   & \textbf{Use}       \\
+    \midrule
+    Logical          & Countable ordered set, no metric   & ordering only      \\
+    Metric           & $\mathbf{T} = \mathbb{N}$          & discrete steps     \\
+    Real             & $\mathbf{T} = \mathbb{R}_{\geq 0}$ & physical deadlines \\
+    \bottomrule
+\end{tabularx}
+
+\section{The Dictionary}
+
+\begin{definition}[Dictionary]
+    A \emph{dictionary} is a set
+    \[
+        D = \bigl\{\, (\mathit{sem},\, \mathit{ops},\, \mathit{mods}) \,\bigr\}
+    \]
+    where each triple consists of a semantics $\mathit{sem}$, a set of operations $\mathit{ops}$ (each with an associated effect predicate), and a modifier schema $\mathit{mods}$. $D$ is open: new triples may be added without altering the core.
+\end{definition}
+
+\subsection{Built-in types}
+
+\begin{tabularx}{\textwidth}{lXX}
+    \toprule
+    \textbf{Type}     & \textbf{Operations}                                    & \textbf{Modifiers}                                    \\
+    \midrule
+    \texttt{SIGNAL}   & \textit{calculate}                                     & initial value, datatype                               \\
+    \texttt{STORAGE}  & \textit{read}, \textit{store}                          & address, non-volatility, register flag, initial value \\
+    \texttt{EVENT}    & $\mathit{fire}$, $\mathit{count}$, $\mathit{interval}$ & —                                                     \\
+    \texttt{CHANNEL}  & \textit{transmit}, \textit{receive}                    & carried datatypes                                     \\
+    \texttt{STATE}    & \textit{set\_state}; $\mathit{in\_state}$ predicate    & —                                                     \\
+    \texttt{VALUE}    & identity comparison                                    & datatype                                              \\
+    \texttt{ABSTRACT} & existence, identity comparison                         & —                                                     \\
+    \bottomrule
+\end{tabularx}
+
+\subsection{Entity}
+
+\begin{definition}[Entity]
+    An entity is a tuple
+    \[
+        e = (\mathit{name},\ \mathit{type},\ \mathit{modifiers},\ \mathit{description})
+    \]
+    where $\mathit{type} \in D$ and $\mathit{modifiers}$ is a set of key-value pairs drawn from the modifier schema of $\mathit{type}$.
+\end{definition}
+
+We write $\mathbf{E}$ for the finite set of all declared entities.
+
+\subsection{Extending the dictionary}
+
+A new entity type is added by declaring (i) what it \emph{is}, (ii) what operations apply and their effect predicates, (iii) what modifiers are admitted. The rest of the formalism operates uniformly over whatever entries $D$ contains.
+
+\section{Valuations and Traces}
+
+\begin{definition}[Valuation]
+    A valuation is a function $\sigma : \mathbf{E} \to \mathbf{V}$ assigning a value to every entity. For entities of type \texttt{EVENT}, $\sigma(e) \in \{\mathit{true}, \mathit{false}\}$, where $\sigma(e) = \mathit{true}$ iff the event occurs at that time point.
+\end{definition}
+
+We write $\Sigma$ for the set of all valuations.
+
+\begin{definition}[Trace]
+    A trace is a function $\rho : \mathbf{T} \to \Sigma$. We write $\rho(t)(e)$ for the value of entity $e$ at time $t$.
+\end{definition}
+
+\section{Expressions and Predicates}
+
+\begin{definition}[Expression]
+    The set $\mathbf{Expr}$ is the smallest set such that:
+    \begin{itemize}
+        \item $\mathit{val}(e)$ — current value: $\rho(t)(e)$
+        \item $\mathit{val}(e,\, t')$ — value at absolute time $t' \in \mathbf{T}$: $\rho(t')(e)$
+        \item $\mathit{val}(e,\, @\mathit{ev})$ — value at last occurrence of \texttt{EVENT} $\mathit{ev}$: $\rho(t_{\mathit{last}})(e)$,\; $t_{\mathit{last}} = \max\{s \leq t \mid \rho(s)(\mathit{ev}) = \mathit{true}\}$
+        \item $\mathit{prev}(e)$ — $\rho(t-1)(e)$ \quad (metric time only)
+        \item $\mathit{at}(e,\, n)$ — $\rho(t-n)(e)$,\; $n \geq 1$ \quad (metric time only)
+        \item $\mathit{addr}(e)$ — static lookup of the address modifier on $e$
+        \item $\mathit{diff}(a,\, b),\; \mathit{signed}(a)$ \quad for $a, b \in \mathbf{Expr}$
+        \item $\mathit{max\_peak}(e),\; \mathit{min\_peak}(e)$ — $\sup / \inf\,\{\rho(s)(e) \mid s \leq t\}$
+        \item $\mathit{count}(e)$ — total occurrences of \texttt{EVENT} $e$ up to $t$
+        \item $\mathit{count}(e,\, \mathit{since}\; e'),\; \mathit{count}(e,\, [a,b])$ — windowed counts
+        \item $\mathit{interval}(e,\, n)$ — span between the 1st and $n$-th most recent occurrence of \texttt{EVENT} $e$
+        \item any constant $c \in \mathbf{V}$
+        \item arithmetic combinators $+, -, \times, /$ closed under $\mathbf{V}$
+    \end{itemize}
+    Every $\varphi \in \mathbf{Expr}$ has a denotation $\llbracket\varphi\rrbracket(\rho, t) \in \mathbf{V}$.
+\end{definition}
+
+\begin{definition}[Predicate]
+    The set $\mathbf{Pred}$ is the smallest set such that:
+    \begin{itemize}
+        \item $\mathit{cmp}(a,\, \mathit{op},\, b)$ for $a, b \in \mathbf{Expr}$,\; $\mathit{op} \in \{=,\neq,<,\leq,>,\geq\}$
+        \item $\mathit{is}(a,\, \mathit{lit})$ for $a \in \mathbf{Expr}$, $\mathit{lit} \in \mathbf{V}$ — value equals a named constant
+        \item $\mathit{occurred}(e)$ for \texttt{EVENT} $e$ — $e$ fires at the current time
+        \item $\mathit{in\_state}(s)$ for \texttt{STATE} $s$
+        \item $\mathit{all\_of}(C),\; \mathit{any\_of}(C)$ for finite $C \subseteq \mathbf{Pred}$
+        \item $\mathit{not}(\psi)$ for $\psi \in \mathbf{Pred}$
+        \item $\forall x \in S:\psi(x),\; \exists x \in S:\psi(x)$ for a finite set $S$
+        \item boolean constants $\top,\, \bot$
+    \end{itemize}
+    Every $\psi \in \mathbf{Pred}$ has a denotation $\llbracket\psi\rrbracket(\rho, t) \in \{\mathit{true}, \mathit{false}\}$.
+\end{definition}
+
+\section{Actions}
+
+\begin{definition}[Action]
+    An action is a tuple $\alpha = (\mathit{op},\, \mathit{args},\, \mathit{pred})$ where $\mathit{op}$ is an operation drawn from the dictionary entry of the target entity, $\mathit{args}$ are its parameters, and $\mathit{pred} \in \mathbf{Pred}$ is the effect predicate.
+\end{definition}
+
+\begin{tabularx}{\textwidth}{XXl}
+    \toprule
+    \textbf{Operation}                     & \textbf{Parameters}                                             & \textbf{Effect predicate}                             \\
+    \midrule
+    $\mathit{calculate}(e, \mathit{expr})$ & entity $e$, expression $\mathit{expr}$                          & $\mathit{val}(e) = \llbracket\mathit{expr}\rrbracket$ \\
+    $\mathit{read}(e, a)$                  & entity $e$, address $a$                                         & $\mathit{val}(e) = \mathit{value\_at}(a)$             \\
+    $\mathit{store}(e, \mathit{dst})$      & entity $e$, destination $\mathit{dst}$                          & $\mathit{value\_at}(\mathit{dst}) = \mathit{val}(e)$  \\
+    $\mathit{invoke}(e)$                   & entity $e$                                                      & $\mathit{invoked}(e)$                                 \\
+    $\mathit{hold}(e)$                     & entity $e$                                                      & $\mathit{halted}(e)$                                  \\
+    $\mathit{toggle}(e)$                   & entity $e$                                                      & $\mathit{val}(e) = \lnot\,\mathit{prev}(e)$           \\
+    $\mathit{transmit}(v, b, \mathit{ch})$ & \texttt{VALUE} $v$, binding $b$, \texttt{CHANNEL} $\mathit{ch}$ & $\mathit{transmitted}(v, b, \mathit{ch})$             \\
+    $\mathit{set\_state}(s)$               & \texttt{STATE} $s$                                              & $\mathit{in\_state}(s)$                               \\
+    \bottomrule
+\end{tabularx}
+
+\medskip
+A \emph{conditional action} $\mathit{if}(c,\, \alpha)$ has effect predicate $c \Rightarrow \mathit{pred}(\alpha)$.
+
+\section{Temporal Constructs}
+
+Temporal constructs compose predicates and actions into \emph{trace predicates} — functions $P : \mathbf{Trace} \to \{\mathit{true}, \mathit{false}\}$. A trace $\rho$ \emph{satisfies} a requirement $R$ (written $\rho \models R$) iff $P(\rho) = \mathit{true}$.
+
+\begin{tabularx}{\textwidth}{lX}
+    \toprule
+    \textbf{Construct}                              & \textbf{$\rho$ satisfies it iff}                                                                                          \\
+    \midrule
+    $\mathit{always}(\psi)$                         & $\forall t \in \mathbf{T}:\llbracket\psi\rrbracket(\rho,t)$                                                               \\
+    $\mathit{eventually}(\psi)$                     & $\exists t \in \mathbf{T}:\llbracket\psi\rrbracket(\rho,t)$                                                               \\
+    $\mathit{initial}(\psi)$                        & $\llbracket\psi\rrbracket(\rho,0)$                                                                                        \\
+    $\mathit{triggered}(\psi_c, \psi_e)$            & $\forall t:\llbracket\psi_c\rrbracket(\rho,t) \Rightarrow \exists t' \geq t:\llbracket\psi_e\rrbracket(\rho,t')$          \\
+    $\mathit{triggered\_within}(\psi_c, \psi_e, d)$ & $\forall t:\llbracket\psi_c\rrbracket(\rho,t) \Rightarrow \exists t' \in [t,\,t{+}d]:\llbracket\psi_e\rrbracket(\rho,t')$ \\
+    $\mathit{conjunction}(P_1, P_2)$                & \multirow{3}{*}{standard boolean composition}                                                                             \\
+    $\mathit{disjunction}(P_1, P_2)$                &                                                                                                                           \\
+    $\mathit{negation}(P)$                          &                                                                                                                           \\
+    \bottomrule
+\end{tabularx}
+
+\subsection{Effect structures}
+
+When a requirement prescribes several actions, their relative timing is expressed as an \emph{effect structure}.
+
+\begin{definition}[Effect structure]
+    An effect structure is a pair $S = (\mathit{steps},\, \mathit{constraints})$ where $\mathit{steps} = \{s_1, \ldots, s_n\}$ is a finite set of actions and $\mathit{constraints}$ is a set of temporal relations:
+
+    \begin{tabularx}{\textwidth}{lX}
+        \toprule
+        \textbf{Relation}                & \textbf{Meaning}                                              \\
+        \midrule
+        $\mathit{precedes}(s_i, s_j)$    & $s_i$ completes before $s_j$ begins                           \\
+        $\mathit{within}(s_i, s_j, d)$   & $s_j$ occurs within duration $d$ after $s_i$                  \\
+        $\mathit{concurrent}(s_i, s_j)$  & no ordering imposed                                           \\
+        $\mathit{excludes}(s_i, s_j)$    & $s_i$ and $s_j$ must not co-occur                             \\
+        $\mathit{immediately}(s_i, s_j)$ & $s_j$ at the next tick after $s_i$, with no intervening steps \\
+        $\mathit{conditional}(c, s_i)$   & $s_i$ required only when $c$ holds                            \\
+        \bottomrule
+    \end{tabularx}
+\end{definition}
+
+\textbf{Satisfaction.} $\rho \models S$ iff there exists a mapping $\mu : \mathit{steps} \to \mathbf{T}$ such that $\llbracket\mathit{pred}(s_i)\rrbracket(\rho,\, \mu(s_i))$ holds for each $s_i$ and every relation in $\mathit{constraints}$ is respected by $\mu$.
+
+\section{Requirements}
+
+\begin{definition}[Requirement]
+    A requirement is a tuple $R = (\mathit{id},\, \mathit{label},\, \mathit{entities},\, \mathit{constraint})$ where:
+    \begin{itemize}
+        \item $\mathit{id}$ is a unique requirement identifier
+        \item $\mathit{label}$ is a human-readable description
+        \item $\mathit{entities} \subseteq \mathbf{E}$ — the entities participating in this requirement
+        \item $\mathit{constraint}$ is a trace predicate built from §§4--6
+    \end{itemize}
+\end{definition}
+
+A trace $\rho$ satisfies $R$ (written $\rho \models R$) iff $\mathit{constraint}(\rho) = \mathit{true}$. Entities declared in one requirement may be referenced by others; declaration conflicts are a static error.
+
+\end{document}
