@@ -143,52 +143,9 @@ We write $\Sigma$ for the set of all valuations.
 
 \section{Expressions and predicates}
 
-\subsection{Expressions}
+\subsection{Time functions}
 
-Expressions are terms that evaluate to a value in $V$ given a trace $\rho$.
-
-\begin{definition}[]\label{def:expr_val}
-    For a trace $\rho \in \Sigma^T$, the function $\mathit{Val}_\rho: E \times T \rightarrow V$ denotes the value of entity $e \in E$ at time $t \in T$:
-    \[
-        \mathit{Val}_\rho(e,\, t) \;=\; \rho(t)(e)
-    \]
-\end{definition}
-
-\begin{definition}[Event occurrence count]\label{def:evt_occ_count}
-    For a trace $\rho \in \Sigma^T$ and an entity $ev \in E$ of type \texttt{Event},
-    $\mathit{EvtOccCount}_\rho : E \times \mathcal{I} \rightarrow \mathbb{N}$ returns the number of occurrences of $ev$ within an interval $i \in \mathcal{I}$:
-    \[
-        \mathit{EvtOccCount}_\rho(ev,\, i) \;=\; \bigl|\{\, s \in T \mid \mathit{Start}(i) \leq s \leq \mathit{End}(i) \;\land\; \mathit{Val}_\rho(ev,\, s) = \mathit{true} \,\}\bigr|
-    \]
-\end{definition}
-
-\begin{definition}[]\label{def:last_occ}
-    For a trace $\rho \in \Sigma^T$ and an entity $ev \in E$ of type \texttt{Event},
-    $\mathit{LastOcc}_\rho : E \times T \rightarrow T \cup \{-\infty\}$ returns the time of the most recent occurrence of $ev$ up to time $t$:
-    \[
-        \mathit{LastOcc}_\rho(ev,\, t) \;=\;
-        \begin{cases}
-            \max\{\, s \in T \mid s \leq t \;\land\; \mathit{Val}_\rho(ev,\, s) = \mathit{true} \,\} & \text{if the set is non-empty} \\
-            -\infty                                                                                  & \text{otherwise}
-        \end{cases}
-    \]
-\end{definition}
-
-\begin{definition}[Maximum value function]\label{def:max_val}
-    For a trace $\rho \in \Sigma^T$ and an entity $e \in E$ with an ordered value domain,
-    $\mathit{MaxVal}_\rho : E \times T \rightarrow V$ returns the maximum value of $e$ up to and including time $t$:
-    \[
-        \mathit{MaxVal}_\rho(e,\, t) \;=\; \sup\{\, \mathit{Val}_\rho(e,\, s) \mid s \in T,\; s \leq t \,\}
-    \]
-\end{definition}
-
-\begin{definition}[Minimum value function]\label{def:min_val}
-    For a trace $\rho \in \Sigma^T$ and an entity $e \in E$ with an ordered value domain,
-    $\mathit{MinVal}_\rho : E \times T \rightarrow V$ returns the minimum value of $e$ up to and including time $t$:
-    \[
-        \mathit{MinVal}_\rho(e,\, t) \;=\; \inf\{\, \mathit{Val}_\rho(e,\, s) \mid s \in T,\; s \leq t \,\}
-    \]
-\end{definition}
+The following functions operate on time points and intervals only; they do not depend on a trace.
 
 The following two functions are defined for \textbf{discrete time only} ($T = T_D = \mathbb{N}$).
 
@@ -215,6 +172,8 @@ The following two functions are defined for \textbf{discrete time only} ($T = T_
     The function is partial: it is undefined when $t + n < 0$ since $t + n \notin T_D$.
     Note that $\mathit{Prev}(t) = \mathit{RelTime}(t, -1)$ and $\mathit{Next}(t) = \mathit{RelTime}(t, 1)$.
 \end{definition}
+
+The following functions are defined for both time flavours.
 
 \begin{definition}[]\label{def:diff}
     $\mathit{Diff} : T \times T \rightarrow \Delta$ returns the duration between two time points:
@@ -256,6 +215,65 @@ The following two functions are defined for \textbf{discrete time only} ($T = T_
     $\mathit{Duration} : \mathcal{I} \rightarrow \Delta$ returns the duration of an interval:
     \[
         \mathit{Duration}((t,\, d)) \;=\; d
+    \]
+\end{definition}
+
+\subsection{Trace functions}
+
+Expressions are terms that evaluate to a value in $V$ given a trace $\rho$.
+
+\begin{definition}[]\label{def:expr_val}
+    For a trace $\rho \in \Sigma^T$, the function $\mathit{Val}_\rho: E \times T \rightarrow V$ denotes the value of entity $e \in E$ at time $t \in T$:
+    \[
+        \mathit{Val}_\rho(e,\, t) \;=\; \rho(t)(e)
+    \]
+\end{definition}
+
+\begin{definition}[Event occurrence count]\label{def:evt_occ_count}
+    For a trace $\rho \in \Sigma^T$ and an entity $ev \in E$ of type \texttt{Event},
+    $\mathit{EvtOccCount}_\rho : E \times \mathcal{I} \rightarrow \mathbb{N}$ returns the number of occurrences of $ev$ within an interval $i \in \mathcal{I}$:
+    \[
+        \mathit{EvtOccCount}_\rho(ev,\, i) \;=\; \bigl|\{\, s \in T \mid \mathit{Start}(i) \leq s \leq \mathit{End}(i) \;\land\; \mathit{Val}_\rho(ev,\, s) = \mathit{true} \,\}\bigr|
+    \]
+\end{definition}
+
+\begin{definition}[Last occurrences function]\label{def:last_occ}
+    For a trace $\rho \in \Sigma^T$, an entity $ev \in E$ of type \texttt{Event}, a time point $t \in T$, and $n \in \mathbb{N}^+$,
+    let $t_1 \leq t_2 \leq \cdots \leq t_n$ be the $n$ most recent occurrence times of $ev$ up to $t$, i.e.\ the $n$ largest elements of $\{\, s \in T \mid s \leq t \;\land\; \mathit{Val}_\rho(ev,\, s) = \mathit{true} \,\}$ sorted in ascending order.
+    Then $\mathit{LastOcc}_\rho : E \times T \times \mathbb{N}^+ \rightharpoonup \mathcal{I}$ is defined as:
+    \[
+        \mathit{LastOcc}_\rho(ev,\, t,\, n) \;=\; \mathit{MkInterval}(t_1,\, t_n)
+    \]
+    The function is partial: it is undefined when fewer than $n$ occurrences of $ev$ exist up to $t$.
+
+    \textit{Note:} The time of a single occurrence is obtained via $\mathit{LastOcc}_\rho(ev, t, 1)$, which returns an interval of duration $0$. The occurrence time is then $\mathit{Start}(\mathit{LastOcc}_\rho(ev, t, 1))$.
+\end{definition}
+
+\begin{definition}[First occurrences function]\label{def:first_occ}
+    For a trace $\rho \in \Sigma^T$, an entity $ev \in E$ of type \texttt{Event}, a time point $t \in T$, and $n \in \mathbb{N}^+$,
+    let $t_1 \leq t_2 \leq \cdots \leq t_n$ be the $n$ earliest occurrence times of $ev$ up to $t$, i.e.\ the $n$ smallest elements of $\{\, s \in T \mid s \leq t \;\land\; \mathit{Val}_\rho(ev,\, s) = \mathit{true} \,\}$ sorted in ascending order.
+    Then $\mathit{FirstOcc}_\rho : E \times T \times \mathbb{N}^+ \rightharpoonup \mathcal{I}$ is defined as:
+    \[
+        \mathit{FirstOcc}_\rho(ev,\, t,\, n) \;=\; \mathit{MkInterval}(t_1,\, t_n)
+    \]
+    The function is partial: it is undefined when fewer than $n$ occurrences of $ev$ exist up to $t$.
+
+    \textit{Note:} The time of the first occurrence is $\mathit{Start}(\mathit{FirstOcc}_\rho(ev, t, 1))$.
+\end{definition}
+
+\begin{definition}[Maximum value function]\label{def:max_val}
+    For a trace $\rho \in \Sigma^T$ and an entity $e \in E$ with an ordered value domain,
+    $\mathit{MaxVal}_\rho : E \times \mathcal{I} \rightarrow V$ returns the maximum value of $e$ over an interval $i \in \mathcal{I}$:
+    \[
+        \mathit{MaxVal}_\rho(e,\, i) \;=\; \sup\{\, \mathit{Val}_\rho(e,\, s) \mid s \in T,\; \mathit{Start}(i) \leq s \leq \mathit{End}(i) \,\}
+    \]
+\end{definition}
+
+\begin{definition}[Minimum value function]\label{def:min_val}
+    For a trace $\rho \in \Sigma^T$ and an entity $e \in E$ with an ordered value domain,
+    $\mathit{MinVal}_\rho : E \times \mathcal{I} \rightarrow V$ returns the minimum value of $e$ over an interval $i \in \mathcal{I}$:
+    \[
+        \mathit{MinVal}_\rho(e,\, i) \;=\; \inf\{\, \mathit{Val}_\rho(e,\, s) \mid s \in T,\; \mathit{Start}(i) \leq s \leq \mathit{End}(i) \,\}
     \]
 \end{definition}
 
