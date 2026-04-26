@@ -154,6 +154,14 @@ Expressions are terms that evaluate to a value in $V$ given a trace $\rho$.
     \]
 \end{definition}
 
+\begin{definition}[Event occurrence count]\label{def:evt_occ_count}
+    For a trace $\rho \in \Sigma^T$ and an entity $ev \in E$ of type \texttt{Event},
+    $\mathit{EvtOccCount}_\rho : E \times \mathcal{I} \rightarrow \mathbb{N}$ returns the number of occurrences of $ev$ within an interval $i \in \mathcal{I}$:
+    \[
+        \mathit{EvtOccCount}_\rho(ev,\, i) \;=\; \bigl|\{\, s \in T \mid \mathit{Start}(i) \leq s \leq \mathit{End}(i) \;\land\; \mathit{Val}_\rho(ev,\, s) = \mathit{true} \,\}\bigr|
+    \]
+\end{definition}
+
 \begin{definition}[]\label{def:last_occ}
     For a trace $\rho \in \Sigma^T$ and an entity $ev \in E$ of type \texttt{Event},
     $\mathit{LastOcc}_\rho : E \times T \rightarrow T \cup \{-\infty\}$ returns the time of the most recent occurrence of $ev$ up to time $t$:
@@ -163,6 +171,22 @@ Expressions are terms that evaluate to a value in $V$ given a trace $\rho$.
             \max\{\, s \in T \mid s \leq t \;\land\; \mathit{Val}_\rho(ev,\, s) = \mathit{true} \,\} & \text{if the set is non-empty} \\
             -\infty                                                                                  & \text{otherwise}
         \end{cases}
+    \]
+\end{definition}
+
+\begin{definition}[Maximum value function]\label{def:max_val}
+    For a trace $\rho \in \Sigma^T$ and an entity $e \in E$ with an ordered value domain,
+    $\mathit{MaxVal}_\rho : E \times T \rightarrow V$ returns the maximum value of $e$ up to and including time $t$:
+    \[
+        \mathit{MaxVal}_\rho(e,\, t) \;=\; \sup\{\, \mathit{Val}_\rho(e,\, s) \mid s \in T,\; s \leq t \,\}
+    \]
+\end{definition}
+
+\begin{definition}[Minimum value function]\label{def:min_val}
+    For a trace $\rho \in \Sigma^T$ and an entity $e \in E$ with an ordered value domain,
+    $\mathit{MinVal}_\rho : E \times T \rightarrow V$ returns the minimum value of $e$ up to and including time $t$:
+    \[
+        \mathit{MinVal}_\rho(e,\, t) \;=\; \inf\{\, \mathit{Val}_\rho(e,\, s) \mid s \in T,\; s \leq t \,\}
     \]
 \end{definition}
 
@@ -190,6 +214,49 @@ The following two functions are defined for \textbf{discrete time only} ($T = T_
     \]
     The function is partial: it is undefined when $t + n < 0$ since $t + n \notin T_D$.
     Note that $\mathit{Prev}(t) = \mathit{RelTime}(t, -1)$ and $\mathit{Next}(t) = \mathit{RelTime}(t, 1)$.
+\end{definition}
+
+\begin{definition}[]\label{def:diff}
+    $\mathit{Diff} : T \times T \rightarrow \Delta$ returns the duration between two time points:
+    \[
+        \mathit{Diff}(t_1,\, t_2) \;=\; |t_1 - t_2|
+    \]
+\end{definition}
+
+\begin{definition}[]\label{def:mk_interval}
+    $\mathit{MkInterval} : T \times T \rightharpoonup \mathcal{I}$ constructs an interval from a start and end time point:
+    \[
+        \mathit{MkInterval}(t_1,\, t_2) \;=\; (t_1,\; t_2 - t_1)
+    \]
+    The function is partial: it is undefined when $t_1 > t_2$.
+\end{definition}
+
+\begin{definition}[Since-zero interval]\label{def:since_zero}
+    $\mathit{SinceZero} : T \rightarrow \mathcal{I}$ constructs an interval from time zero to a given time point $t$:
+    \[
+        \mathit{SinceZero}(t) \;=\; (0,\; t)
+    \]
+\end{definition}
+
+\begin{definition}[Interval start]\label{def:interval_start}
+    $\mathit{Start} : \mathcal{I} \rightarrow T$ returns the start time point of an interval:
+    \[
+        \mathit{Start}((t,\, d)) \;=\; t
+    \]
+\end{definition}
+
+\begin{definition}[Interval end]\label{def:interval_end}
+    $\mathit{End} : \mathcal{I} \rightarrow T$ returns the end time point of an interval:
+    \[
+        \mathit{End}((t,\, d)) \;=\; t + d
+    \]
+\end{definition}
+
+\begin{definition}[Interval duration]\label{def:interval_duration}
+    $\mathit{Duration} : \mathcal{I} \rightarrow \Delta$ returns the duration of an interval:
+    \[
+        \mathit{Duration}((t,\, d)) \;=\; d
+    \]
 \end{definition}
 
 \section{Operations}
