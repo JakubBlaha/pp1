@@ -7,6 +7,8 @@
 \usepackage{booktabs}
 \usepackage{multirow}
 \usepackage{stmaryrd}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage[normalem]{ulem}
 
 \newtheorem{definition}{Definition}
 
@@ -141,9 +143,27 @@ We write $\Sigma$ for the set of all valuations.
     A trace is a function $\rho : T \to \Sigma$. We write $\rho(t)(e)$ for the value of entity $e$ at time $t$.
 \end{definition}
 
+We write $\Sigma^T$ for the set of all traces, i.e.\ the set of all functions from $T$ to $\Sigma$.
+This is standard function space notation: $\Sigma^T = \{\, \rho \mid \rho : T \to \Sigma \,\}$.
+
 \section{Expressions and predicates}
 
-\subsection{Time functions}
+All expression functions defined in this section evaluate to a value in $V$.
+Functions in \S\ref{subsec:time} depend only on time points or intervals.
+Functions in \S\ref{subsec:trace} additionally take a trace $\rho \in \Sigma^T$
+and produce values that reflect the state of the system over time.
+
+\subsection{Expressions}\label{subsec:expressions}
+
+\subsubsection{Constants and arithmetic}\label{subsec:constants}
+
+\begin{definition}[Constant]\label{def:constant}
+    Any value $c \in V$ may appear as a constant expression.
+\end{definition}
+
+The standard arithmetic operators $+$, $-$, $\times$, $/$ are defined on numeric values ($\mathbb{R}$ and its subsets) in the usual sense.
+
+\subsubsection{Time functions}\label{subsec:time}
 
 The following functions operate on time points and intervals only; they do not depend on a trace.
 
@@ -165,7 +185,7 @@ The following two functions are defined for \textbf{discrete time only} ($T = T_
 \end{definition}
 
 \begin{definition}[]\label{def:reltime}
-    $\mathit{RelTime} : T_D \times \mathbb{Z} \rightharpoonup T_D$ shifts a time point by $n$ steps, where $n \in \mathbb{Z}$ may be positive (forward) or negative (backward):
+    $\mathit{RelTime} : T_D \times \mathbb{Z} \rightharpoonup T_D$ shifts a time point by $n$ steps, where $n \in \mathbb{Z}$ may be positive or negative:
     \[
         \mathit{RelTime}(t,\, n) \;=\; t + n
     \]
@@ -218,7 +238,7 @@ The following functions are defined for both time flavours.
     \]
 \end{definition}
 
-\subsection{Trace functions}
+\subsubsection{Trace functions}\label{subsec:trace}
 
 Expressions are terms that evaluate to a value in $V$ given a trace $\rho$.
 
@@ -277,31 +297,141 @@ Expressions are terms that evaluate to a value in $V$ given a trace $\rho$.
     \]
 \end{definition}
 
+\subsection{Predicates}\label{subsec:predicates}
+
+A predicate is a function that evaluates to a value in $\mathbb{B}$.
+We write $\mathbf{Pred}$ for the set of all predicates.
+
+\begin{definition}[Boolean constants]\label{def:pred_bool}
+    $\top \in \mathbf{Pred}$ and $\bot \in \mathbf{Pred}$ are the always-true and always-false predicates respectively.
+\end{definition}
+
+\begin{definition}[Comparison predicate]\label{def:pred_cmp}
+    For expressions $a, b \in V$ and a comparison operator $\mathit{op} \in \{=,\, \neq,\, <,\, \leq,\, >,\, \geq\}$:
+    \[
+        \mathit{Cmp}(a,\, \mathit{op},\, b) \;=\; a \;\mathit{op}\; b
+    \]
+    The operators $<, \leq, >, \geq$ require $a, b$ to be from an ordered domain.
+\end{definition}
+
+\begin{definition}[Negation]\label{def:pred_not}
+    For a predicate $P \in \mathbf{Pred}$:
+    \[
+        \mathit{Not}(P) \;=\; \lnot P
+    \]
+\end{definition}
+
+\begin{definition}[Conjunction and disjunction]\label{def:pred_allandany}
+    For a finite set of predicates $C \subseteq \mathbf{Pred}$:
+    \[
+        \mathit{AllOf}(C) \;=\; \bigwedge_{P \in C} P \qquad
+        \mathit{AnyOf}(C) \;=\; \bigvee_{P \in C} P
+    \]
+\end{definition}
+
+\begin{definition}[Implication]\label{def:pred_implies}
+    For predicates $A, B \in \mathbf{Pred}$:
+    \[
+        \mathit{Implies}(A,\, B) \;=\; A \Rightarrow B
+    \]
+    where $\Rightarrow$ is the standard logical implication.
+\end{definition}
+
+\begin{definition}[Quantifiers]\label{def:pred_quant}
+    For a finite set $S$ and a predicate $P(x)$ parameterised by $x \in S$:
+    \[
+        \mathit{ForAll}(S,\, P) \;=\; \bigwedge_{x \in S} P(x) \qquad
+        \mathit{Exists}(S,\, P) \;=\; \bigvee_{x \in S} P(x)
+    \]
+\end{definition}
+
+The following predicates operate on intervals and durations.
+Since $\Delta \subseteq \mathbb{R}$, duration comparison is a special case of $\mathit{Cmp}$ (Definition~\ref{def:pred_cmp}).
+
+\begin{definition}[Interval inclusion]\label{def:pred_includes}
+    Interval $i_1$ includes $i_2$ iff $i_2$ is entirely contained within $i_1$:
+    \[
+        \mathit{IntervalIncludes}(i_1,\, i_2) \;\Leftrightarrow\;
+        \mathit{Start}(i_1) \leq \mathit{Start}(i_2) \;\land\; \mathit{End}(i_2) \leq \mathit{End}(i_1)
+    \]
+\end{definition}
+
+\begin{definition}[Interval exclusion]\label{def:pred_excludes}
+    Intervals $i_1$ and $i_2$ are exclusive iff they are completely disjoint:
+    \[
+        \mathit{IntervalExcludes}(i_1,\, i_2) \;\Leftrightarrow\;
+        \mathit{End}(i_1) < \mathit{Start}(i_2) \;\lor\; \mathit{End}(i_2) < \mathit{Start}(i_1)
+    \]
+\end{definition}
+
+\begin{definition}[Start included]\label{def:pred_start_in}
+    The start of $i_1$ falls within $i_2$:
+    \[
+        \mathit{StartOfFirstIntervalIn}(i_1,\, i_2) \;\Leftrightarrow\;
+        \mathit{Start}(i_2) \leq \mathit{Start}(i_1) \leq \mathit{End}(i_2)
+    \]
+\end{definition}
+
+\begin{definition}[End included]\label{def:pred_end_in}
+    The end of $i_1$ falls within $i_2$:
+    \[
+        \mathit{EndOfFirstIntervalIn}(i_1,\, i_2) \;\Leftrightarrow\;
+        \mathit{Start}(i_2) \leq \mathit{End}(i_1) \leq \mathit{End}(i_2)
+    \]
+\end{definition}
+
 \section{Operations}
 
-Each entity type can be mapped to different \textit{operations}, which can be
-\textit{executed} on an entity. Each \textit{operation} is mapped to a particular
-predicate, which becomes \textit{true}, when the operation is \textit{executed}.
+An operation is a function from its arguments to an effect predicate — the predicate that must hold in the trace at the time the operation is executed.
 
-\begin{definition}[Operations set]\label{def:op_set}
-    \[
-        O = \{ op\,|\,\text{op is an operation causing an effect predicate to become true}\}
-    \]
+\begin{definition}[Operation]\label{def:operation}
+    An \emph{operation} is a function $op : Args_{op} \rightarrow \mathbf{Pred}$, where $Args_{op}$ is the domain of arguments of $op$.
+    The predicate $op(args)$ is the \emph{effect} of $op$ when called with arguments $args$, and must hold at the time point of execution.
 \end{definition}
 
-\begin{definition}[Operations function]\label{def:op_fn}
+\begin{definition}[Operations]\label{def:op_set}
+    Let $O$ be the set of all operations and $O_T : T_E \rightarrow \mathcal{P}(O)$ be the function mapping each entity type to its applicable operations:
     \[
-        O_T: T_E \rightarrow O
+        O_T : T_E \rightarrow \mathcal{P}(O)
+        \qquad \text{where} \qquad
+        O = \bigcup_{\tau \in T_E} O_T(\tau)
     \]
-\end{definition}
+    The concrete mapping, including argument types and effects, is as follows.
 
-The effect predicate function $P_O$ maps each \textit{operation} to a predicate that becomes \text{true},
-when \textit{executed}.
+    \medskip
+    \begin{tabularx}{\textwidth}{lXX}
+        \toprule
+        \textbf{Operation} & \textbf{Arguments}                                                             & \textbf{Effect $op(args)$} \\
+        \midrule
+        $\mathit{calculate}(t,\, e,\, \mathit{expr})$
+                           & $t \in T$, Signal $e \in E$,\newline value expression $\mathit{expr} \in V$
+                           & $\mathit{Cmp}(\mathit{Val}_\rho(e, t),\, =,\, \mathit{expr})$                                               \\[4pt]
+        \sout{$\mathit{read}(t,\, e,\, a)$}
+                           & \sout{$t \in T$, Storage $e \in E$, address $a$}
+                           & \sout{$\mathit{Cmp}(\mathit{Val}_\rho(e, t),\, =,\, \mathit{ValueAt}(a))$}                                  \\[4pt]
+        \sout{$\mathit{store}(t,\, e,\, \mathit{dst})$}
+                           & \sout{$t \in T$, Storage $e \in E$, address $\mathit{dst}$}
+                           & \sout{$\mathit{Cmp}(\mathit{ValueAt}(\mathit{dst}),\, =,\, \mathit{Val}_\rho(e, t))$}                       \\[4pt]
+        $\mathit{fire}(t,\, e)$
+                           & $t \in T$, Event $e \in E$
+                           & $\mathit{Cmp}(\mathit{Val}_\rho(e, t),\, =,\, \mathit{true})$                                               \\[4pt]
+        \sout{$\mathit{transmit}(t,\, e,\, v)$}
+                           & \sout{$t \in T$, Channel $e \in E$, value $v \in V$}
+                           & \sout{$\mathit{Cmp}(\mathit{Val}_\rho(e, t),\, =,\, v)$}                                                    \\[4pt]
+        \sout{$\mathit{receive}(t,\, e,\, v)$}
+                           & \sout{$t \in T$, Channel $e \in E$, value $v \in V$}
+                           & \sout{$\mathit{Cmp}(\mathit{Val}_\rho(e, t),\, =,\, v)$}                                                    \\[4pt]
+        \sout{$\mathit{set\_state}(t,\, e)$}
+                           & \sout{$t \in T$, State $e \in E$}
+                           & \sout{$\mathit{Cmp}(\mathit{Val}_\rho(e, t),\, =,\, \mathit{true})$}                                        \\[4pt]
+        \sout{$\mathit{compare}(t,\, e_1,\, e_2)$}
+                           & \sout{$t \in T$, Entities $e_1, e_2 \in E$}
+                           & \sout{$\mathit{Cmp}(\mathit{Val}_\rho(e_1, t),\, =,\, \mathit{Val}_\rho(e_2, t))$}                          \\
+        \bottomrule
+    \end{tabularx}
+    \medskip
 
-\begin{definition}[Effect predicate function]\label{def:ef_pred_fn}
-    \[
-        P_O: O \rightarrow \text{set of all possible predicates}
-    \]
+    \noindent Here $\mathit{ValueAt}(a)$ denotes the value stored at memory address $a$.
 \end{definition}
 
 \section{Notes}
@@ -316,6 +446,7 @@ when \textit{executed}.
     \item $T$ should be merged discrete and continuous.
     \item Need to resolve undefined with time functions.
     \item Last n-th occurence.
+    \item From time to predicates that hold? What would that be useful for? Do we really want to reference predicates in other predicates?
 \end{itemize}
 
 \end{document}
