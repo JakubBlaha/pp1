@@ -1,0 +1,236 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{stmaryrd}
+
+\newtheorem{definition}{Definition}
+
+\title{PP1 - Vyhodnocování úplnosti testů vůči softwarovým požadavkům - formalismus}
+\author{  }
+\date{April 2026}
+
+\begin{document}
+
+\maketitle
+
+\section{The primitives}
+
+These primitive sets serve as the base that the rest of the formalism builds on. The primitive sets are the following:
+\begin{itemize}
+    \item $T_D$, $T_C$ -- the \textit{discrete time} and \textit{continuous time} sets.
+          An infinite totally ordered set; the time set can have \textit{discrete} or \textit{continuous} flavour; exactly one flavour is chosen per requirement.
+    \item $V$ -- the $Values$ set. These can be used to describe the values of entities.
+\end{itemize}
+
+\begin{definition}[Discrete time set]\label{def:time_discrete}
+    The \emph{discrete time set} $T_D$ is totally ordered and countable.
+    \[
+        T_D = \mathbb{N}
+    \]
+\end{definition}
+
+\begin{definition}[Continuous time set]\label{def:time_continuous}
+    The \emph{continuous time set} $T_C$ is totally ordered and uncountable.
+    \[
+        T_C = \mathbb{R}_{\geq 0}
+    \]
+\end{definition}
+
+\begin{definition}[Duration]\label{def:duration}
+    A \emph{duration} is a non-negative element of the time set, representing the length of a time span:
+    \[
+        \Delta = T
+    \]
+    Thus $\Delta = \mathbb{N}$ for discrete time and $\Delta = \mathbb{R}_{\geq 0}$ for continuous time.
+\end{definition}
+
+\begin{definition}[Interval]\label{def:interval}
+    An \emph{interval} is a pair of a start time point and a duration:
+    \[
+        \mathcal{I} = T \times \Delta
+    \]
+    An interval $(t, d) \in \mathcal{I}$ represents the time span $[t,\, t + d]$.
+\end{definition}
+
+\begin{definition}[Values]\label{def:values}
+    The \emph{values set} $V$ is the union of the following sets:
+    \[
+        V = \mathbb{B} \cup \mathbb{R} \cup T \cup \mathcal{I}
+    \]
+    where $\mathbb{B} = \{\mathit{true}, \mathit{false}\}$ is the set of booleans, $\mathbb{R}$ is the set of real numbers, $T$ is the time set, and $\mathcal{I}$ is the set of intervals.
+\end{definition}
+
+\section{Entities and entity types}
+
+An entity type is an item belonging to a set of predefined entity types.
+
+\begin{definition}[Entity type set]\label{def:entity_type_set}
+    \[
+        T_\text{E} = \{ \text{Signal}, \text{Storage}, \text{Event}, \text{Channel}, \text{State}, \text{Value}, \text{Abstract}\}
+    \]
+\end{definition}
+
+\begin{definition}[Entity name set]\label{def:entity_name_set}
+    \[
+        N_\text{E} \subseteq \Sigma^*
+    \]
+
+    , where $\Sigma$ is an alphabet.
+\end{definition}
+
+Entity type modifiers are properties which can be attached to
+an entity of a particular type. Semantics are defined for each modifier.
+
+\begin{definition}[Entity type modifiers set]\label{def:entity_type_modifiers_set}
+    \[
+        M = \{m\,|\,m\,\text{is a modifier of an entity type}\}
+    \]
+
+\end{definition}
+
+Each entity type is compatible with only a subset of the entity modifiers.
+Therefore we define the \textit{entity type modifiers function}.
+
+\begin{definition}[Entity type modifiers function]\label{def:entity_type_modifiers_fn}
+    \[
+        M_\text{E}: T_E \rightarrow \mathcal{P}(M)
+    \]
+
+    , where $\mathcal{P}(M)$ is the power set of $M$.
+\end{definition}
+
+% \begin{definition}[Entity type]\label{def:entity_type}
+%     \[
+%         T_e
+%     \]
+% \end{definition}
+
+An entity is something that is referenced in the requirement.
+Formally, entity is defined as a four-item tuple.
+
+\begin{definition}[Entity]\label{def:entity}
+    \[
+        e = (n_e, t_e, m_e, d_e)
+    \]
+
+    , where
+    \begin{itemize}
+        \item $n_e$ is the name of the entity; $n_e \in N_E$
+        \item $t_e$ is the name of the entity; $t_e \in T_E$
+        \item $m_e$ is the set of modifiers of the entity; $m_e \in T_E$, $m_e \subseteq M_E(t_e)$
+        \item $d_e$ is the description of the entity; $d_e \in \Sigma^*$
+    \end{itemize}
+\end{definition}
+
+\section{Valuations and traces}
+
+\begin{definition}[Valuation]\label{def:valuation}
+    A valuation is a function $\sigma : E \to V$ assigning a value to every entity.
+    For entities of type \texttt{Event}, $\sigma(e) \in \{\mathit{true}, \mathit{false}\}$,
+    where $\sigma(e) = \mathit{true}$ iff the event occurs at that time point.
+\end{definition}
+
+We write $\Sigma$ for the set of all valuations.
+
+\begin{definition}[Trace]\label{def:trace}
+    A trace is a function $\rho : T \to \Sigma$. We write $\rho(t)(e)$ for the value of entity $e$ at time $t$.
+\end{definition}
+
+\section{Expressions and predicates}
+
+\subsection{Expressions}
+
+Expressions are terms that evaluate to a value in $V$ given a trace $\rho$.
+
+\begin{definition}[]\label{def:expr_val}
+    For a trace $\rho \in \Sigma^T$, the function $\mathit{Val}_\rho: E \times T \rightarrow V$ denotes the value of entity $e \in E$ at time $t \in T$:
+    \[
+        \mathit{Val}_\rho(e,\, t) \;=\; \rho(t)(e)
+    \]
+\end{definition}
+
+\begin{definition}[]\label{def:last_occ}
+    For a trace $\rho \in \Sigma^T$ and an entity $ev \in E$ of type \texttt{Event},
+    $\mathit{LastOcc}_\rho : E \times T \rightarrow T \cup \{-\infty\}$ returns the time of the most recent occurrence of $ev$ up to time $t$:
+    \[
+        \mathit{LastOcc}_\rho(ev,\, t) \;=\;
+        \begin{cases}
+            \max\{\, s \in T \mid s \leq t \;\land\; \mathit{Val}_\rho(ev,\, s) = \mathit{true} \,\} & \text{if the set is non-empty} \\
+            -\infty                                                                                  & \text{otherwise}
+        \end{cases}
+    \]
+\end{definition}
+
+The following two functions are defined for \textbf{discrete time only} ($T = T_D = \mathbb{N}$).
+
+\begin{definition}[]\label{def:prev}
+    $\mathit{Prev} : T_D \rightharpoonup T_D$ returns the preceding time step:
+    \[
+        \mathit{Prev}(t) \;=\; t - 1
+    \]
+    The function is partial: it is undefined at $t = 0$ since $t - 1 \notin T_D$.
+\end{definition}
+
+\begin{definition}[]\label{def:next}
+    $\mathit{Next} : T_D \rightarrow T_D$ returns the following time step:
+    \[
+        \mathit{Next}(t) \;=\; t + 1
+    \]
+\end{definition}
+
+\begin{definition}[]\label{def:reltime}
+    $\mathit{RelTime} : T_D \times \mathbb{Z} \rightharpoonup T_D$ shifts a time point by $n$ steps, where $n \in \mathbb{Z}$ may be positive (forward) or negative (backward):
+    \[
+        \mathit{RelTime}(t,\, n) \;=\; t + n
+    \]
+    The function is partial: it is undefined when $t + n < 0$ since $t + n \notin T_D$.
+    Note that $\mathit{Prev}(t) = \mathit{RelTime}(t, -1)$ and $\mathit{Next}(t) = \mathit{RelTime}(t, 1)$.
+\end{definition}
+
+\section{Operations}
+
+Each entity type can be mapped to different \textit{operations}, which can be
+\textit{executed} on an entity. Each \textit{operation} is mapped to a particular
+predicate, which becomes \textit{true}, when the operation is \textit{executed}.
+
+\begin{definition}[Operations set]\label{def:op_set}
+    \[
+        O = \{ op\,|\,\text{op is an operation causing an effect predicate to become true}\}
+    \]
+\end{definition}
+
+\begin{definition}[Operations function]\label{def:op_fn}
+    \[
+        O_T: T_E \rightarrow O
+    \]
+\end{definition}
+
+The effect predicate function $P_O$ maps each \textit{operation} to a predicate that becomes \text{true},
+when \textit{executed}.
+
+\begin{definition}[Effect predicate function]\label{def:ef_pred_fn}
+    \[
+        P_O: O \rightarrow \text{set of all possible predicates}
+    \]
+\end{definition}
+
+\section{Notes}
+
+\begin{itemize}
+    \item Lepsi ponechat typ entity, protoze musime mapovat na modifiers,
+          item ktere jsou rozdilne pro kazdy typ entity. Zaroven muzeme namapovat
+          typ entity na mnozinu operaci.
+    \item Modifiers need to be parameterized.
+    \item We could theoretically map entity types directly to predicates, which
+          can be set to \textit{true}, but maybe we will want different predicates depending on the context (e.g. discrete or continuous time).
+    \item $T$ should be merged discrete and continuous.
+    \item Need to resolve undefined with time functions.
+    \item Last n-th occurence.
+\end{itemize}
+
+\end{document}
