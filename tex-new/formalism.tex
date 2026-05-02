@@ -384,8 +384,18 @@ Since $\Delta \subseteq \mathbb{R}$, duration comparison is a special case of $\
         op : T \times A_1 \times \cdots \times A_n \rightarrow \mathbf{Pred}
     \]
     for some $n \geq 0$ and argument types $A_i \subseteq V \cup E$, where $T$ is the time set.
-    The predicate $op(t,\, a_1,\, \ldots,\, a_n)$ is the \emph{effect} of $op$ executed at time $t$ with arguments $a_1, \ldots, a_n$, and must hold at time $t$.
-    We write $O$ for the set of all operations, and $O_T : T_E \rightarrow \mathcal{P}(O)$ for the function mapping each entity type to its applicable operations, where $O = \bigcup_{\tau \in T_E} O_T(\tau)$.
+    The predicate $op(t,\, a_1,\, \ldots,\, a_n)$ is the \emph{effect} of $op$ executed at time $t$ with arguments $a_1, \ldots, a_n$ -- it describes the condition that the operation causes to hold at time $t$.
+    We write $O$ for the set of all operations.
+\end{definition}
+
+\begin{definition}[Entity type operations function]\label{def:entity_type_ops_fn}
+    \[
+        O_T : T_E \times \mathcal{P}(M) \rightarrow \mathcal{P}(O)
+    \]
+    , maps each entity type and set of modifiers to its applicable operations.
+    
+    It holds that: $O = \bigcup_{\tau \in T_E,\, \mu \subseteq M} O_T(\tau,\, \mu)$.
+
     The concrete mapping, including argument types and effects, is as follows.
 
     \medskip
