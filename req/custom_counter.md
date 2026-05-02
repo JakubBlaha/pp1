@@ -1,0 +1,1 @@
+After the system enters emergency mode, then at each discrete time step, the counter counter_1 is incremented by 3.

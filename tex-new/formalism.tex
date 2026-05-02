@@ -1,3 +1,47 @@
+% FORMALISM OVERVIEW
+%
+% PURPOSE: Define a logic-agnostic formal language for expressing embedded/avionics
+% software requirements and test cases, so that coverage gaps can be detected
+% mechanically. The ten Embraer requirements in req/ are the concrete test bed.
+%
+% AUTHORITATIVE REFERENCE: ../abstract-final.md (8-section spec).
+% This file is the LaTeX rendering of that spec.
+%
+% KEY DESIGN PRINCIPLES:
+%
+% 1. LAYERS
+%    Primitives (T, V) -> Entities & Dictionary -> Valuations & Traces ->
+%    Expressions & Predicates -> Operations -> Temporal Constructs -> Requirements
+%    -> Test Cases & Coverage
+%
+% 2. EXPRESSIONS ARE EVALUATED AT AMBIENT (rho, t)
+%    Every expression is implicitly a function of trace rho and current time t.
+%    e.g. prev(e) means Val_rho(e, t-1) where t is supplied by the surrounding
+%    temporal operator, NOT by the operation call. This means operations do NOT
+%    take t as an explicit argument -- t is implicit.
+%
+% 3. OPERATIONS DEFINE POINT-IN-TIME EFFECT PREDICATES
+%    An operation such as calculate(e, expr) produces a predicate that holds at
+%    the *current* t. The temporal extent (always, eventually, from t onwards)
+%    is specified at the requirement level via temporal operators (always, triggered,
+%    etc.), not inside the operation definition.
+%    Example: always(calculate(e, 1.2 * prev(e))) expresses the recurrence
+%    e(k) = 1.2 * e(k-1) for all k -- the always handles "for all time".
+%
+% 4. THE DICTIONARY IS OPEN
+%    Entity types (Signal, Storage, Event, Channel, State, Value, Mapping, Abstract)
+%    each declare: semantics, applicable operations, and admitted modifiers.
+%    New types are added by extending the dictionary, not by changing the core.
+%
+% 5. COVERAGE IS DERIVED FROM REQUIREMENT STRUCTURE
+%    MC/DC for ALL_OF conditions, per-element for ANY_OF, boundary tests for time
+%    bounds, negative cases for guards, ordering violation tests for strict sequences.
+%
+% KNOWN OPEN ISSUES (see Notes section and todo.md):
+%    - Modifiers need to be parameterised
+%    - Discrete vs continuous time flavour handling
+%    - Partiality of time functions (Prev at t=0)
+
 \documentclass{article}
 \usepackage{graphicx}
 \usepackage{amsmath}
@@ -376,15 +420,38 @@ Since $\Delta \subseteq \mathbb{R}$, duration comparison is a special case of $\
     \]
 \end{definition}
 
+% DESIGN CONCLUSION: OPERATIONS AND TEMPORAL EXTENT
+%
+% Operations (e.g. calculate, fire) do NOT take t as an explicit argument.
+% t is "ambient" -- it is supplied by the surrounding temporal construct
+% (Always, Triggered, etc.) at the requirement level.
+%
+% An operation produces a point-in-time effect predicate that holds at the
+% ambient t only. It says nothing about any other time point.
+%
+% We considered making calculate's effect hold from t onward
+% (i.e. forall t' >= t: Val_rho(e, t') = expr), but rejected this because:
+%   (a) The trace rho is a fixed mathematical object -- operations do not
+%       "write" to it. It already has whatever values it has at every time point.
+%   (b) A later operation in the same requirement may set a different value,
+%       which would directly contradict a "forall t' >= t" clause.
+%
+% Temporal extent is always the responsibility of the surrounding temporal
+% construct:
+%   Always(calculate(e, expr))           -- holds at every t
+%   Triggered(cond, calculate(e, expr))  -- holds at every t where cond fires
+%   forall t' >= t: ...                  -- expressed at requirement level, not
+%                                           inside the operation definition
+
 \section{Operations}
 
 \begin{definition}[Operation]\label{def:operation}
     An \emph{operation} is a function
     \[
-        op : T \times A_1 \times \cdots \times A_n \rightarrow \mathbf{Pred}
+        op : A_1 \times \cdots \times A_n \rightarrow \mathbf{Pred}
     \]
-    for some $n \geq 0$ and argument types $A_i \subseteq V \cup E$, where $T$ is the time set.
-    The predicate $op(t,\, a_1,\, \ldots,\, a_n)$ is the \emph{effect} of $op$ executed at time $t$ with arguments $a_1, \ldots, a_n$ -- it describes the condition that the operation causes to hold at time $t$.
+    for some $n \geq 0$ and argument types $A_i \subseteq V \cup E$.
+    The predicate $op(a_1,\, \ldots,\, a_n)$ is the \emph{effect} of $op$ -- it describes the condition that the operation causes to hold at the ambient time $t$, which is supplied by the surrounding temporal construct.
     The trigger condition that invokes an operation is specified at the requirement level.
     We write $O$ for the set of all operations.
 \end{definition}
@@ -404,18 +471,18 @@ Since $\Delta \subseteq \mathbb{R}$, duration comparison is a special case of $\
         \toprule
         \textbf{Operation} & \textbf{Arguments}                                                                    & \textbf{Effect $op(args)$} \\
         \midrule
-        $\mathit{calculate}(t,\, e,\, \mathit{expr})$
-                           & $t \in T$, Signal $e \in E$,\newline value expression $\mathit{expr} \in V$
-                           & $\mathit{Cmp}(\mathit{Val}_\rho(e, t),\, =,\, \mathit{expr})$                                                      \\[4pt]
+        $\mathit{calculate}(e,\, \mathit{expr})$
+                           & Signal $e \in E$,\newline expression $\mathit{expr} \in V$
+                           & $\mathit{Val}_\rho(e, t) = \mathit{expr}$                                                                          \\[4pt]
         \sout{$\mathit{read}(t,\, e,\, a)$}
                            & \sout{$t \in T$, Storage $e \in E$, address $a$}
                            & \sout{$\mathit{Cmp}(\mathit{Val}_\rho(e, t),\, =,\, \mathit{ValueAt}(a))$}                                         \\[4pt]
         \sout{$\mathit{store}(t,\, e,\, \mathit{dst})$}
                            & \sout{$t \in T$, Storage $e \in E$, address $\mathit{dst}$}
                            & \sout{$\mathit{Cmp}(\mathit{ValueAt}(\mathit{dst}),\, =,\, \mathit{Val}_\rho(e, t))$}                              \\[4pt]
-        $\mathit{fire}(t,\, e)$
-                           & $t \in T$, Event $e \in E$
-                           & $\mathit{Cmp}(\mathit{Val}_\rho(e, t),\, =,\, \mathit{true})$                                                      \\[4pt]
+        $\mathit{fire}(e)$
+                           & Event $e \in E$
+                           & $\mathit{Val}_\rho(e, t) = \mathit{true}$                                                                          \\[4pt]
         \sout{$\mathit{transmit}(t,\, e,\, v)$}
                            & \sout{$t \in T$, Channel $e \in E$, value $v \in V$}
                            & \sout{$\mathit{Cmp}(\mathit{Val}_\rho(e, t),\, =,\, v)$}                                                           \\[4pt]
@@ -434,6 +501,48 @@ Since $\Delta \subseteq \mathbb{R}$, duration comparison is a special case of $\
 
     % \noindent Here $\mathit{ValueAt}(a)$ denotes the value stored at memory address $a$.
 \end{definition}
+
+\section{Temporal constructs}
+
+A \emph{trace predicate} is a function $P : \Sigma^T \to \mathbb{B}$.
+A trace $\rho$ \emph{satisfies} a requirement $R$ (written $\rho \models R$) iff $R$'s constraint $P$ is such that $P(\rho) = \mathit{true}$.
+The temporal constructs below build trace predicates by quantifying a predicate $\psi \in \mathbf{Pred}$ over time.
+
+\begin{definition}[Always]\label{def:always}
+    \[
+        \mathit{Always}(\psi) \;\Leftrightarrow\; \forall t \in T:\; \psi(\rho, t)
+    \]
+\end{definition}
+
+\begin{definition}[Eventually]\label{def:eventually}
+    \[
+        \mathit{Eventually}(\psi) \;\Leftrightarrow\; \exists t \in T:\; \psi(\rho, t)
+    \]
+\end{definition}
+
+\begin{definition}[Initial]\label{def:initial}
+    \[
+        \mathit{Initial}(\psi) \;\Leftrightarrow\; \psi(\rho, 0)
+    \]
+\end{definition}
+
+\begin{definition}[Triggered]\label{def:triggered}
+    \[
+        \mathit{Triggered}(\psi_{\mathit{cond}},\, \psi_{\mathit{effect}}) \;\Leftrightarrow\;
+        \forall t \in T:\; \psi_{\mathit{cond}}(\rho, t) \Rightarrow \exists t' \geq t:\; \psi_{\mathit{effect}}(\rho, t')
+    \]
+\end{definition}
+
+\begin{definition}[Triggered within]\label{def:triggered_within}
+    \[
+        \mathit{TriggeredWithin}(\psi_{\mathit{cond}},\, \psi_{\mathit{effect}},\, d) \;\Leftrightarrow\;
+        \forall t \in T:\; \psi_{\mathit{cond}}(\rho, t) \Rightarrow \exists t' \in [t,\, t+d]:\; \psi_{\mathit{effect}}(\rho, t')
+    \]
+    where $d \in \Delta$ is a duration bound.
+\end{definition}
+
+The constructs compose via standard boolean operators on trace predicates:
+conjunction $P_1 \land P_2$, disjunction $P_1 \lor P_2$, and negation $\lnot P$.
 
 \section{Notes}
 
