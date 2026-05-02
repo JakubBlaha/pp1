@@ -206,6 +206,13 @@ The standard arithmetic operators $+$, $-$, $\times$, $/$ are defined on numeric
 
 The following functions operate on time points and intervals only; they do not depend on a trace.
 
+\begin{definition}[Current time]\label{def:now}
+    $\mathit{Now} \in T$ returns the ambient time point $t$:
+    \[
+        \mathit{Now} \;=\; t
+    \]
+\end{definition}
+
 The following two functions are defined for \textbf{discrete time only} ($T = T_D = \mathbb{N}$).
 
 \begin{definition}[]\label{def:prev}
