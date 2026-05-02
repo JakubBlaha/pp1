@@ -382,56 +382,50 @@ Since $\Delta \subseteq \mathbb{R}$, duration comparison is a special case of $\
 
 \section{Operations}
 
-An operation is a function from its arguments to an effect predicate — the predicate that must hold in the trace at the time the operation is executed.
-
 \begin{definition}[Operation]\label{def:operation}
-    An \emph{operation} is a function $op : Args_{op} \rightarrow \mathbf{Pred}$, where $Args_{op}$ is the domain of arguments of $op$.
-    The predicate $op(args)$ is the \emph{effect} of $op$ when called with arguments $args$, and must hold at the time point of execution.
-\end{definition}
-
-\begin{definition}[Operations]\label{def:op_set}
-    Let $O$ be the set of all operations and $O_T : T_E \rightarrow \mathcal{P}(O)$ be the function mapping each entity type to its applicable operations:
+    An \emph{operation} is a function
     \[
-        O_T : T_E \rightarrow \mathcal{P}(O)
-        \qquad \text{where} \qquad
-        O = \bigcup_{\tau \in T_E} O_T(\tau)
+        op : T \times A_1 \times \cdots \times A_n \rightarrow \mathbf{Pred}
     \]
+    for some $n \geq 0$ and argument types $A_i \subseteq V \cup E$, where $T$ is the time set.
+    The predicate $op(t,\, a_1,\, \ldots,\, a_n)$ is the \emph{effect} of $op$ executed at time $t$ with arguments $a_1, \ldots, a_n$, and must hold at time $t$.
+    We write $O$ for the set of all operations, and $O_T : T_E \rightarrow \mathcal{P}(O)$ for the function mapping each entity type to its applicable operations, where $O = \bigcup_{\tau \in T_E} O_T(\tau)$.
     The concrete mapping, including argument types and effects, is as follows.
 
     \medskip
     \begin{tabularx}{\textwidth}{lXX}
         \toprule
-        \textbf{Operation} & \textbf{Arguments}                                                             & \textbf{Effect $op(args)$} \\
+        \textbf{Operation} & \textbf{Arguments}                                                                    & \textbf{Effect $op(args)$} \\
         \midrule
         $\mathit{calculate}(t,\, e,\, \mathit{expr})$
                            & $t \in T$, Signal $e \in E$,\newline value expression $\mathit{expr} \in V$
-                           & $\mathit{Cmp}(\mathit{Val}_\rho(e, t),\, =,\, \mathit{expr})$                                               \\[4pt]
+                           & $\mathit{Cmp}(\mathit{Val}_\rho(e, t),\, =,\, \mathit{expr})$                                                      \\[4pt]
         \sout{$\mathit{read}(t,\, e,\, a)$}
                            & \sout{$t \in T$, Storage $e \in E$, address $a$}
-                           & \sout{$\mathit{Cmp}(\mathit{Val}_\rho(e, t),\, =,\, \mathit{ValueAt}(a))$}                                  \\[4pt]
+                           & \sout{$\mathit{Cmp}(\mathit{Val}_\rho(e, t),\, =,\, \mathit{ValueAt}(a))$}                                         \\[4pt]
         \sout{$\mathit{store}(t,\, e,\, \mathit{dst})$}
                            & \sout{$t \in T$, Storage $e \in E$, address $\mathit{dst}$}
-                           & \sout{$\mathit{Cmp}(\mathit{ValueAt}(\mathit{dst}),\, =,\, \mathit{Val}_\rho(e, t))$}                       \\[4pt]
+                           & \sout{$\mathit{Cmp}(\mathit{ValueAt}(\mathit{dst}),\, =,\, \mathit{Val}_\rho(e, t))$}                              \\[4pt]
         $\mathit{fire}(t,\, e)$
                            & $t \in T$, Event $e \in E$
-                           & $\mathit{Cmp}(\mathit{Val}_\rho(e, t),\, =,\, \mathit{true})$                                               \\[4pt]
+                           & $\mathit{Cmp}(\mathit{Val}_\rho(e, t),\, =,\, \mathit{true})$                                                      \\[4pt]
         \sout{$\mathit{transmit}(t,\, e,\, v)$}
                            & \sout{$t \in T$, Channel $e \in E$, value $v \in V$}
-                           & \sout{$\mathit{Cmp}(\mathit{Val}_\rho(e, t),\, =,\, v)$}                                                    \\[4pt]
+                           & \sout{$\mathit{Cmp}(\mathit{Val}_\rho(e, t),\, =,\, v)$}                                                           \\[4pt]
         \sout{$\mathit{receive}(t,\, e,\, v)$}
                            & \sout{$t \in T$, Channel $e \in E$, value $v \in V$}
-                           & \sout{$\mathit{Cmp}(\mathit{Val}_\rho(e, t),\, =,\, v)$}                                                    \\[4pt]
+                           & \sout{$\mathit{Cmp}(\mathit{Val}_\rho(e, t),\, =,\, v)$}                                                           \\[4pt]
         \sout{$\mathit{set\_state}(t,\, e)$}
                            & \sout{$t \in T$, State $e \in E$}
-                           & \sout{$\mathit{Cmp}(\mathit{Val}_\rho(e, t),\, =,\, \mathit{true})$}                                        \\[4pt]
+                           & \sout{$\mathit{Cmp}(\mathit{Val}_\rho(e, t),\, =,\, \mathit{true})$}                                               \\[4pt]
         \sout{$\mathit{compare}(t,\, e_1,\, e_2)$}
                            & \sout{$t \in T$, Entities $e_1, e_2 \in E$}
-                           & \sout{$\mathit{Cmp}(\mathit{Val}_\rho(e_1, t),\, =,\, \mathit{Val}_\rho(e_2, t))$}                          \\
+                           & \sout{$\mathit{Cmp}(\mathit{Val}_\rho(e_1, t),\, =,\, \mathit{Val}_\rho(e_2, t))$}                                 \\
         \bottomrule
     \end{tabularx}
     \medskip
 
-    \noindent Here $\mathit{ValueAt}(a)$ denotes the value stored at memory address $a$.
+    % \noindent Here $\mathit{ValueAt}(a)$ denotes the value stored at memory address $a$.
 \end{definition}
 
 \section{Notes}
