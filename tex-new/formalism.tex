@@ -9,6 +9,7 @@
 \usepackage{stmaryrd}
 \usepackage[margin=2.5cm]{geometry}
 \usepackage[normalem]{ulem}
+\usepackage{nameref}
 
 \newtheorem{definition}{Definition}
 
@@ -88,13 +89,6 @@ An entity type is an item belonging to a set of predefined entity types.
 Entity type modifiers are properties which can be attached to
 an entity of a particular type. Semantics are defined for each modifier.
 
-\begin{definition}[Entity type modifiers set]\label{def:entity_type_modifiers_set}
-    \[
-        M = \{m\,|\,m\,\text{is a modifier of an entity type}\}
-    \]
-
-\end{definition}
-
 Each entity type is compatible with only a subset of the entity modifiers.
 Therefore we define the \textit{entity type modifiers function}.
 
@@ -103,7 +97,7 @@ Therefore we define the \textit{entity type modifiers function}.
         M_\text{E}: T_E \rightarrow \mathcal{P}(M)
     \]
 
-    , where $\mathcal{P}(M)$ is the power set of $M$.
+    , where $M$ is the set of entity type modifiers and $\mathcal{P}(M)$ is the power set of $M$.
 \end{definition}
 
 % \begin{definition}[Entity type]\label{def:entity_type}
@@ -144,13 +138,14 @@ We write $\Sigma$ for the set of all valuations.
 \end{definition}
 
 We write $\Sigma^T$ for the set of all traces, i.e.\ the set of all functions from $T$ to $\Sigma$.
-This is standard function space notation: $\Sigma^T = \{\, \rho \mid \rho : T \to \Sigma \,\}$.
+
+\footnote{This is standard function space notation: $\Sigma^T = \{\, \rho \mid \rho : T \to \Sigma \,\}$.}
 
 \section{Expressions and predicates}
 
 All expression functions defined in this section evaluate to a value in $V$.
-Functions in \S\ref{subsec:time} depend only on time points or intervals.
-Functions in \S\ref{subsec:trace} additionally take a trace $\rho \in \Sigma^T$
+Functions in \S\ref{subsec:time} (\nameref{subsec:time}) depend only on time points or intervals.
+Functions in \S\ref{subsec:trace} (\nameref{subsec:trace}) additionally take a trace $\rho \in \Sigma^T$
 and produce values that reflect the state of the system over time.
 
 \subsection{Expressions}\label{subsec:expressions}
