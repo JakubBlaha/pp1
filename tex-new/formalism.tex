@@ -556,9 +556,18 @@ The operation is applied to some entity, which means that the argument list of e
 
 \section{Temporal constructs}
 
-A \emph{trace predicate} is a function $P : \Sigma^T \to \mathbb{B}$.
-A trace $\rho$ \emph{satisfies} a requirement $R$ (written $\rho \models R$) iff $R$'s constraint $P$ is such that $P(\rho) = \mathit{true}$.
-The temporal constructs below build trace predicates by quantifying a predicate $\psi \in \mathbf{Pred}$ over time.
+So far, predicates ($\psi \in \mathbf{Pred}$) are point-in-time: they say whether something holds at a specific time $t$ in a specific trace $\rho$.
+A \emph{trace predicate} lifts this to the whole trace: it says whether something holds across the entire execution, not just at one moment.
+Formally, a trace predicate is a function $P : \Sigma^T \to \mathbb{B}$ — it takes a complete trace and returns true or false.
+A trace $\rho$ \emph{satisfies} a requirement $R$ (written $\rho \models R$) iff $R$'s constraint, expressed as a trace predicate $P$, gives $P(\rho) = \mathit{true}$.
+
+The temporal constructs below build trace predicates from point-in-time predicates $\psi \in \mathbf{Pred}$ by quantifying over time — expressing things like ``$\psi$ must hold at all times'' or ``whenever $\psi_{\mathit{cond}}$ holds, $\psi_{\mathit{effect}}$ must eventually follow.''
+
+\begin{definition}[Trace predicate]\label{def:trace_predicate}
+    A \emph{trace predicate} is a function $P : \Sigma^T \to \mathbb{B}$.
+    We write $\mathbf{TracePred}$ for the set of all trace predicates.
+    A trace $\rho$ \emph{satisfies} a trace predicate $P$ (written $\rho \models P$) iff $P(\rho) = \mathit{true}$.
+\end{definition}
 
 \begin{definition}[Temporal constructs]\label{def:temporal_constructs}
     \begin{align*}
@@ -570,7 +579,7 @@ The temporal constructs below build trace predicates by quantifying a predicate 
         \mathit{CausesWithin}(\psi_{\mathit{cond}},\, \psi_{\mathit{effect}},\, d) \;&\Leftrightarrow\;
             \forall t \in T:\; \psi_{\mathit{cond}}(\rho, t) \Rightarrow \exists t' \in [t,\, t+d]:\; \psi_{\mathit{effect}}(\rho, t')
     \end{align*}
-    where $d \in \Delta$ is a duration bound.
+    where $\psi,\, \psi_{\mathit{cond}},\, \psi_{\mathit{effect}} \in \mathbf{Pred}$ are point-in-time predicates and $d \in \Delta$ is a duration bound.
 \end{definition}
 
 The constructs compose via standard boolean operators on trace predicates:
