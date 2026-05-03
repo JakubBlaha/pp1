@@ -577,13 +577,24 @@ The temporal constructs below build trace predicates from point-in-time predicat
         \mathit{Causes}(\psi_{\mathit{cond}},\, \psi_{\mathit{effect}}) \;&\Leftrightarrow\;
             \forall t \in T:\; \psi_{\mathit{cond}}(\rho, t) \Rightarrow \exists t' \geq t:\; \psi_{\mathit{effect}}(\rho, t') \\
         \mathit{CausesWithin}(\psi_{\mathit{cond}},\, \psi_{\mathit{effect}},\, d) \;&\Leftrightarrow\;
-            \forall t \in T:\; \psi_{\mathit{cond}}(\rho, t) \Rightarrow \exists t' \in [t,\, t+d]:\; \psi_{\mathit{effect}}(\rho, t')
+            \forall t \in T:\; \psi_{\mathit{cond}}(\rho, t) \Rightarrow \exists t' \in [t,\, t+d]:\; \psi_{\mathit{effect}}(\rho, t') \\
+        \mathit{Sequence}(\psi_1,\, \ldots,\, \psi_n) \;&\Leftrightarrow\;
+            \exists t_1 \leq t_2 \leq \cdots \leq t_n \in T:\; \psi_i(\rho,\, t_i) \text{ for all } i \\
+        \mathit{Precedes}(\psi_1,\, \psi_2) \;&\Leftrightarrow\;
+            \forall t_1 \in T:\; \psi_2(\rho,\, t_1) \Rightarrow \exists t_2 \leq t_1:\; \psi_1(\rho,\, t_2) \\
+        \mathit{Excludes}(\psi_1,\, \psi_2) \;&\Leftrightarrow\;
+            \forall t \in T:\; \lnot\bigl(\psi_1(\rho,\, t) \land \psi_2(\rho,\, t)\bigr) \\
+        \mathit{Immediately}(\psi_1,\, \psi_2) \;&\Leftrightarrow\;
+            \forall t_1 \in T:\; \psi_1(\rho,\, t_1) \Rightarrow \psi_2(\rho,\, \mathit{Next}(t_1))
     \end{align*}
-    where $\psi,\, \psi_{\mathit{cond}},\, \psi_{\mathit{effect}} \in \mathbf{Pred}$ are point-in-time predicates and $d \in \Delta$ is a duration bound.
+    where $\psi,\, \psi_{\mathit{cond}},\, \psi_{\mathit{effect}},\, \psi_1, \ldots, \psi_n \in \mathbf{Pred}$ are point-in-time predicates and $d \in \Delta$ is a duration bound.
 \end{definition}
 
-The constructs compose via standard boolean operators on trace predicates:
-conjunction $P_1 \land P_2$, disjunction $P_1 \lor P_2$, and negation $\lnot P$.
+The constructs compose via standard logical operators on trace predicates:
+conjunction $P_1 \land P_2$, disjunction $P_1 \lor P_2$, negation $\lnot P$,
+implication $P_1 \Rightarrow P_2$ (if $P_1$ holds for trace $\rho$ then $P_2$ must also hold), and
+biconditional $P_1 \Leftrightarrow P_2$.
+These operate on whole traces, not at individual time points.
 
 \section{Notes}
 
@@ -599,6 +610,7 @@ conjunction $P_1 \land P_2$, disjunction $P_1 \lor P_2$, and negation $\lnot P$.
     \item Last n-th occurence.
     \item From time to predicates that hold? What would that be useful for? Do we really want to reference predicates in other predicates?
     \item \textbf{Open question -- Channel/transmit semantics}: the transmitted value persists on the channel until the next \textit{transmit}, so \textit{receive} at any $t' \geq t$ reads the last transmitted value. It is unclear whether this is the right model for all channel types, or whether some channels should require the receiver to observe the value at the exact transmission time.
+    \item \textbf{Future addition -- Time-when expression}: add $\mathit{LastTrue}_\rho(\psi, t)$ returning the last $t' \leq t$ at which $\psi(\rho, t') = \mathit{true}$, and symmetrically $\mathit{FirstTrue}_\rho(\psi, t)$. Currently only $\mathit{LastOcc}_\rho$ and $\mathit{FirstOcc}_\rho$ cover this for \texttt{Event} entities specifically.
     \item \textbf{Open question -- Synchronous channel model}: the current model is asynchronous -- \textit{transmit} and \textit{receive} are independent operations that may occur at different times. An alternative synchronous model would have \textit{transmit} directly cause \textit{received} to fire at the same time $t$, making \textit{receive} a consequence of \textit{transmit} rather than a separate operation.
 \end{itemize}
 
