@@ -42,6 +42,9 @@
 %    - Discrete vs continuous time flavour handling
 %    - Partiality of time functions (Prev at t=0)
 
+% Requirements for this docuement:
+% - it needs to be written in simple wording, dropping any fluff
+
 \documentclass{article}
 \usepackage{graphicx}
 \usepackage{amsmath}
@@ -54,16 +57,34 @@
 \usepackage[margin=2.5cm]{geometry}
 \usepackage[normalem]{ulem}
 \usepackage{nameref}
+\usepackage{etoolbox}
 
 \newtheorem{definition}{Definition}
+\AtEndEnvironment{definition}{\vspace{0.5em}}
 
-\title{PP1 - Vyhodnocování úplnosti testů vůči softwarovým požadavkům - formalismus}
+\title{PP1 - Evaluating Test Coverage Against Software Requirements -- formal language}
 \author{  }
 \date{April 2026}
 
 \begin{document}
 
 \maketitle
+
+\section{Introduction}
+
+\subsection{The purpose of the formal language}
+
+This document defines a logic-agnostic formal language for expressing software requirements and test cases.
+The goal is to enable mechanical detection of coverage gaps: given a set of requirements and a set of test cases, the checker determines which requirement conditions are not exercised by any test.
+
+\subsection{The design principles of the formal language}
+
+The formalism is designed around two mandatory properties.
+
+\begin{itemize}
+\item \textbf{extensibility} -- adding new entity kinds or operations must require only extending the entity type set $T_E$, the values set $V$, the entity type modifiers function $M_E$, and the entity type operations function $O_T$.
+\item \textbf{matchability} -- a formalised requirement and a formalised test case must be expressed using the same \textbf{predicates}, so that the coverage checker can determine which truth assignments to those predicates are exercised by the tests and which logical combinations are uncovered.
+\end{itemize}
 
 \section{The primitives}
 
@@ -188,6 +209,7 @@ We write $\Sigma^T$ for the set of all traces, i.e.\ the set of all functions fr
 \section{Expressions and predicates}
 
 All expression functions defined in this section evaluate to a value in $V$.
+We write $\mathbf{Expr}$ for the set of all expressions.
 Functions in \S\ref{subsec:time} (\nameref{subsec:time}) depend only on time points or intervals.
 Functions in \S\ref{subsec:trace} (\nameref{subsec:trace}) additionally take a trace $\rho \in \Sigma^T$
 and produce values that reflect the state of the system over time.
@@ -452,13 +474,17 @@ Since $\Delta \subseteq \mathbb{R}$, duration comparison is a special case of $\
 
 \section{Operations}
 
+An operation is an action that the system performs at a specific point in time.
+Each operation has a set of arguments and produces an \emph{effect predicate} — a formal statement, parameterised by the firing time $t$, of what must hold in the trace as a result of the operation being performed.
+The operation is applied to some entity, which means that the argument list of every operation must include the entity the operation is applied to.
+
 \begin{definition}[Operation]\label{def:operation}
     An \emph{operation} is a function
     \[
-        op : A_1 \times \cdots \times A_n \rightarrow \mathbf{Pred}
+        op : T \times E \times A_1 \times \cdots \times A_n \rightarrow \mathbf{Pred}
     \]
-    for some $n \geq 0$ and argument types $A_i \subseteq V \cup E$.
-    The predicate $op(a_1,\, \ldots,\, a_n)$ is the \emph{effect} of $op$ -- it describes the condition that the operation causes to hold at the ambient time $t$, which is supplied by the surrounding temporal construct.
+    for some $n \geq 0$ and additional argument types $A_i \subseteq V \cup E$, where $T$ is the time set and $E$ is the mandatory target entity.
+    The predicate $op(t,\, e,\, a_1,\, \ldots,\, a_n)$ is the \emph{effect} of $op$ applied to entity $e$ at time $t$ -- it describes the condition that the operation causes to hold.
     The trigger condition that invokes an operation is specified at the requirement level.
     We write $O$ for the set of all operations.
 \end{definition}
@@ -467,28 +493,27 @@ Since $\Delta \subseteq \mathbb{R}$, duration comparison is a special case of $\
     \[
         O_T : T_E \times \mathcal{P}(M) \rightarrow \mathcal{P}(O)
     \]
-    , maps each entity type and set of modifiers to its applicable operations.
-    
-    It holds that: $O = \bigcup_{\tau \in T_E,\, \mu \subseteq M} O_T(\tau,\, \mu)$.
+    , maps each entity type and set of modifiers to its applicable operations.\footnote{$O = \bigcup_{\tau \in T_E,\, \mu \subseteq M} O_T(\tau,\, \mu)$.}
 
     The concrete mapping, including argument types and effects, is as follows.
+    In effect predicates, $t_{\mathit{next}}$ denotes the next time the same operation fires on the same entity after $t$, or $\infty$ if no such firing occurs.
 
     \medskip
     \begin{tabularx}{\textwidth}{lXX}
         \toprule
-        \textbf{Operation} & \textbf{Arguments}                                                                    & \textbf{Effect $op(args)$} \\
+        \textbf{Operation} & \textbf{Notes}                                                                    & \textbf{Effect predicate} \\
         \midrule
-        $\mathit{calculate}(e,\, \mathit{expr})$
-                           & Signal $e \in E$,\newline expression $\mathit{expr} \in V$
-                           & $\mathit{Val}_\rho(e, t) = \mathit{expr}$                                                                          \\[4pt]
+        $\mathit{calculate}(t,\, e,\, \mathit{expr})$
+                           & $t \in T$,\newline $e \in E,\ t_e = \text{Signal}$,\newline $\mathit{expr} \in \mathbf{Expr}$
+                           & $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$                  \\[4pt]
         \sout{$\mathit{read}(t,\, e,\, a)$}
                            & \sout{$t \in T$, Storage $e \in E$, address $a$}
                            & \sout{$\mathit{Cmp}(\mathit{Val}_\rho(e, t),\, =,\, \mathit{ValueAt}(a))$}                                         \\[4pt]
         \sout{$\mathit{store}(t,\, e,\, \mathit{dst})$}
                            & \sout{$t \in T$, Storage $e \in E$, address $\mathit{dst}$}
                            & \sout{$\mathit{Cmp}(\mathit{ValueAt}(\mathit{dst}),\, =,\, \mathit{Val}_\rho(e, t))$}                              \\[4pt]
-        $\mathit{fire}(e)$
-                           & Event $e \in E$
+        $\mathit{fire}(t,\, e)$
+                           & $t \in T$, $e \in E,\ t_e = \text{Event}$
                            & $\mathit{Val}_\rho(e, t) = \mathit{true}$                                                                          \\[4pt]
         \sout{$\mathit{transmit}(t,\, e,\, v)$}
                            & \sout{$t \in T$, Channel $e \in E$, value $v \in V$}
@@ -565,5 +590,37 @@ conjunction $P_1 \land P_2$, disjunction $P_1 \lor P_2$, and negation $\lnot P$.
     \item Last n-th occurence.
     \item From time to predicates that hold? What would that be useful for? Do we really want to reference predicates in other predicates?
 \end{itemize}
+
+\section{Examples}
+
+\subsection{Custom Counter}
+
+\textbf{Requirement:} After the system enters emergency mode, at each discrete time step the counter \textit{counter\_1} is incremented by 3.
+
+\medskip
+\textbf{Entities:}
+\begin{itemize}
+    \item $\mathit{enter\_emergency} \in E$ of type \texttt{Event}
+    \item $\mathit{counter\_1} \in E$ of type \texttt{Signal}
+\end{itemize}
+
+\textbf{Formalization:}
+\[
+    \mathit{Always}\!\left(
+        \mathit{Cmp}\!\left(
+                \mathit{EvtOccCount}_\rho(\mathit{enter\_emergency},\, \mathit{SinceZero}(\mathit{Now})),\,
+                \geq,\, 1
+            \right)
+        \Rightarrow\right.
+\]
+\[
+    \left.\quad
+            \mathit{Val}_\rho(\mathit{counter\_1},\, \mathit{Now}) = \mathit{Val}_\rho(\mathit{counter\_1},\, \mathit{Prev}(\mathit{Now})) + 3
+    \right)
+\]
+
+The condition $\mathit{EvtOccCount}_\rho(\mathit{enter\_emergency},\, \mathit{SinceZero}(\mathit{Now})) \geq 1$ holds at time $t$ iff the event has fired at least once up to $t$, effectively meaning ``emergency mode has been entered.''
+The inner predicate then requires $\mathit{counter\_1}$ to equal its previous value plus 3 at every such time step.
+
 
 \end{document}
