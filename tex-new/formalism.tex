@@ -490,7 +490,7 @@ Since $\Delta \subseteq \mathbb{R}$, duration comparison is a special case of $\
 % Temporal extent is always the responsibility of the surrounding temporal
 % construct:
 %   Always(calculate(e, expr))           -- holds at every t
-%   Triggered(cond, calculate(e, expr))  -- holds at every t where cond fires
+%   Causes(cond, calculate(e, expr))     -- holds at every t where cond fires
 %   forall t' >= t: ...                  -- expressed at requirement level, not
 %                                           inside the operation definition
 
@@ -560,36 +560,16 @@ A \emph{trace predicate} is a function $P : \Sigma^T \to \mathbb{B}$.
 A trace $\rho$ \emph{satisfies} a requirement $R$ (written $\rho \models R$) iff $R$'s constraint $P$ is such that $P(\rho) = \mathit{true}$.
 The temporal constructs below build trace predicates by quantifying a predicate $\psi \in \mathbf{Pred}$ over time.
 
-\begin{definition}[Always]\label{def:always}
-    \[
-        \mathit{Always}(\psi) \;\Leftrightarrow\; \forall t \in T:\; \psi(\rho, t)
-    \]
-\end{definition}
-
-\begin{definition}[Eventually]\label{def:eventually}
-    \[
-        \mathit{Eventually}(\psi) \;\Leftrightarrow\; \exists t \in T:\; \psi(\rho, t)
-    \]
-\end{definition}
-
-\begin{definition}[Initial]\label{def:initial}
-    \[
-        \mathit{Initial}(\psi) \;\Leftrightarrow\; \psi(\rho, 0)
-    \]
-\end{definition}
-
-\begin{definition}[Triggered]\label{def:triggered}
-    \[
-        \mathit{Triggered}(\psi_{\mathit{cond}},\, \psi_{\mathit{effect}}) \;\Leftrightarrow\;
-        \forall t \in T:\; \psi_{\mathit{cond}}(\rho, t) \Rightarrow \exists t' \geq t:\; \psi_{\mathit{effect}}(\rho, t')
-    \]
-\end{definition}
-
-\begin{definition}[Triggered within]\label{def:triggered_within}
-    \[
-        \mathit{TriggeredWithin}(\psi_{\mathit{cond}},\, \psi_{\mathit{effect}},\, d) \;\Leftrightarrow\;
-        \forall t \in T:\; \psi_{\mathit{cond}}(\rho, t) \Rightarrow \exists t' \in [t,\, t+d]:\; \psi_{\mathit{effect}}(\rho, t')
-    \]
+\begin{definition}[Temporal constructs]\label{def:temporal_constructs}
+    \begin{align*}
+        \mathit{Always}(\psi) \;&\Leftrightarrow\; \forall t \in T:\; \psi(\rho, t) \\
+        \mathit{Eventually}(\psi) \;&\Leftrightarrow\; \exists t \in T:\; \psi(\rho, t) \\
+        \mathit{Initial}(\psi) \;&\Leftrightarrow\; \psi(\rho, 0) \\
+        \mathit{Causes}(\psi_{\mathit{cond}},\, \psi_{\mathit{effect}}) \;&\Leftrightarrow\;
+            \forall t \in T:\; \psi_{\mathit{cond}}(\rho, t) \Rightarrow \exists t' \geq t:\; \psi_{\mathit{effect}}(\rho, t') \\
+        \mathit{CausesWithin}(\psi_{\mathit{cond}},\, \psi_{\mathit{effect}},\, d) \;&\Leftrightarrow\;
+            \forall t \in T:\; \psi_{\mathit{cond}}(\rho, t) \Rightarrow \exists t' \in [t,\, t+d]:\; \psi_{\mathit{effect}}(\rho, t')
+    \end{align*}
     where $d \in \Delta$ is a duration bound.
 \end{definition}
 
