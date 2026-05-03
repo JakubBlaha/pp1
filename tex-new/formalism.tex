@@ -596,6 +596,33 @@ implication $P_1 \Rightarrow P_2$ (if $P_1$ holds for trace $\rho$ then $P_2$ mu
 biconditional $P_1 \Leftrightarrow P_2$.
 These operate on whole traces, not at individual time points.
 
+\section{Requirements \& Test cases}
+
+Both requirements and test cases operate over the same shared entity set $E$, which is what makes coverage checking possible.
+
+A requirement is a formal constraint on the system's behaviour, expressed as a trace predicate.
+
+\begin{definition}[Requirement]\label{def:requirement}
+    A \emph{requirement} is a pair $R = (\mathit{entities},\, \mathit{constraint})$ where:
+    \begin{itemize}
+        \item $\mathit{entities} \subseteq E$ is the set of entities participating in this requirement
+        \item $\mathit{constraint} \in \mathbf{TracePred}$ is the formal constraint on the trace
+    \end{itemize}
+    A trace $\rho$ \emph{satisfies} $R$ (written $\rho \models R$) iff $\mathit{constraint}(\rho) = \mathit{true}$.
+\end{definition}
+
+A test case exercises a subset of the same entities to produce a concrete trace, which the coverage checker then analyses against the requirement's constraint.
+
+\begin{definition}[Test case]\label{def:test_case}
+    A \emph{test case} is a pair $\mathit{TestCase} = (\mathit{setup},\, \mathit{stimuli})$ where:
+    \begin{itemize}
+        \item $\mathit{setup}$ is a partial valuation $\sigma_0 : E' \to V$, $E' \subseteq E$, establishing the initial state of the relevant entities
+        \item $\mathit{stimuli} : T \to \mathcal{P}(O)$ maps each time point to the set of operations that fire at that time; it has finite support (non-empty for only finitely many $t$)
+    \end{itemize}
+\end{definition}
+
+Together, $\mathit{setup}$ and $\mathit{stimuli}$ define a trace $\rho$. The coverage checker determines which predicates in a requirement's constraint are exercised by $\rho$.
+
 \section{Notes}
 
 \begin{itemize}
