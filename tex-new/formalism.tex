@@ -151,6 +151,21 @@ An entity type is an item belonging to a set of predefined entity types.
     , where $\Sigma$ is an alphabet.
 \end{definition}
 
+Each entity type has a set of \emph{predefined events} — events that fire automatically as a result of operations on the entity, without requiring explicit user declaration.
+
+\begin{definition}[Predefined events function]\label{def:predefined_events}
+    $PE : T_E \rightarrow \mathcal{P}(\mathit{EventKind})$ maps each entity type to its set of predefined event kinds.
+    A predefined event instance for entity $e$ is written $ek(e)$, where $ek \in PE(t_e)$.
+    The predefined event kinds are:
+    \begin{gather*}
+        PE(\text{Signal}) = \{\, \mathit{calculated} \,\} \qquad
+        PE(\text{Storage}) = \{\, \mathit{written},\, \mathit{read} \,\} \\
+        PE(\text{State}) = \{\, \mathit{entered} \,\} \qquad
+        PE(\text{Channel}) = \{\, \mathit{transmitted},\, \mathit{received} \,\}
+    \end{gather*}
+    All other entity types have no predefined events.
+\end{definition}
+
 Entity type modifiers are properties which can be attached to
 an entity of a particular type. Semantics are defined for each modifier.
 
@@ -414,6 +429,13 @@ We write $\mathbf{Pred}$ for the set of all predicates.
     \]
 \end{definition}
 
+\begin{definition}[Event fired]\label{def:pred_fired}
+    For an entity $e \in E$ with $t_e = \text{Event}$ and a time point $t \in T$:
+    \[
+        \mathit{Fired}(e,\, t) \;\Leftrightarrow\; \mathit{Val}_\rho(e,\, t) = \mathit{true}
+    \]
+\end{definition}
+
 The following predicates operate on intervals and durations.
 Since $\Delta \subseteq \mathbb{R}$, duration comparison is a special case of $\mathit{Cmp}$ (Definition~\ref{def:pred_cmp}).
 
@@ -493,40 +515,38 @@ The operation is applied to some entity, which means that the argument list of e
     \[
         O_T : T_E \times \mathcal{P}(M) \rightarrow \mathcal{P}(O)
     \]
-    , maps each entity type and set of modifiers to its applicable operations.\footnote{$O = \bigcup_{\tau \in T_E,\, \mu \subseteq M} O_T(\tau,\, \mu)$.}
+    maps each entity type and set of modifiers to its applicable operations.\footnote{$O = \bigcup_{\tau \in T_E,\, \mu \subseteq M} O_T(\tau,\, \mu)$.}
 
     The concrete mapping, including argument types and effects, is as follows.
     In effect predicates, $t_{\mathit{next}}$ denotes the next time the same operation fires on the same entity after $t$, or $\infty$ if no such firing occurs.
 
     \medskip
+    \renewcommand{\arraystretch}{2}
     \begin{tabularx}{\textwidth}{lXX}
         \toprule
-        \textbf{Operation} & \textbf{Notes}                                                                    & \textbf{Effect predicate} \\
+        \textbf{Operation} & \textbf{Notes}                                                                    & \textbf{Effect predicates} \\
         \midrule
         $\mathit{calculate}(t,\, e,\, \mathit{expr})$
                            & $t \in T$,\newline $e \in E,\ t_e = \text{Signal}$,\newline $\mathit{expr} \in \mathbf{Expr}$
-                           & $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$                  \\[4pt]
-        \sout{$\mathit{read}(t,\, e,\, a)$}
-                           & \sout{$t \in T$, Storage $e \in E$, address $a$}
-                           & \sout{$\mathit{Cmp}(\mathit{Val}_\rho(e, t),\, =,\, \mathit{ValueAt}(a))$}                                         \\[4pt]
-        \sout{$\mathit{store}(t,\, e,\, \mathit{dst})$}
-                           & \sout{$t \in T$, Storage $e \in E$, address $\mathit{dst}$}
-                           & \sout{$\mathit{Cmp}(\mathit{ValueAt}(\mathit{dst}),\, =,\, \mathit{Val}_\rho(e, t))$}                              \\[4pt]
+                           & $\mathit{Fired}(\mathit{calculated}(e),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$                  \\[4pt]
+        $\mathit{write}(t,\, e,\, \mathit{expr})$
+                           & $t \in T$,\newline $e \in E,\ t_e = \text{Storage}$,\newline $\mathit{expr} \in \mathbf{Expr}$
+                           & $\mathit{Fired}(\mathit{written}(e),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$                  \\[4pt]
+        $\mathit{read}(t,\, e_{\mathit{src}},\, e_{\mathit{dst}})$
+                           & $t \in T$,\newline $e_{\mathit{src}} \in E,\ t_{e_{\mathit{src}}} = \text{Storage}$,\newline $e_{\mathit{dst}} \in E,\ t_{e_{\mathit{dst}}} = \text{Signal}$
+                           & $\mathit{Fired}(\mathit{read}(e_{\mathit{src}}),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e_{\mathit{dst}},\, t') = \mathit{Val}_\rho(e_{\mathit{src}},\, t)$  \\[4pt]
         $\mathit{fire}(t,\, e)$
                            & $t \in T$, $e \in E,\ t_e = \text{Event}$
-                           & $\mathit{Val}_\rho(e, t) = \mathit{true}$                                                                          \\[4pt]
-        \sout{$\mathit{transmit}(t,\, e,\, v)$}
-                           & \sout{$t \in T$, Channel $e \in E$, value $v \in V$}
-                           & \sout{$\mathit{Cmp}(\mathit{Val}_\rho(e, t),\, =,\, v)$}                                                           \\[4pt]
-        \sout{$\mathit{receive}(t,\, e,\, v)$}
-                           & \sout{$t \in T$, Channel $e \in E$, value $v \in V$}
-                           & \sout{$\mathit{Cmp}(\mathit{Val}_\rho(e, t),\, =,\, v)$}                                                           \\[4pt]
-        \sout{$\mathit{set\_state}(t,\, e)$}
-                           & \sout{$t \in T$, State $e \in E$}
-                           & \sout{$\mathit{Cmp}(\mathit{Val}_\rho(e, t),\, =,\, \mathit{true})$}                                               \\[4pt]
-        \sout{$\mathit{compare}(t,\, e_1,\, e_2)$}
-                           & \sout{$t \in T$, Entities $e_1, e_2 \in E$}
-                           & \sout{$\mathit{Cmp}(\mathit{Val}_\rho(e_1, t),\, =,\, \mathit{Val}_\rho(e_2, t))$}                                 \\
+                           & $\mathit{Fired}(e,\, t)$                                                                                            \\[4pt]
+        $\mathit{set\_state}(t,\, e,\, s)$
+                           & $t \in T$,\newline $e \in E,\ t_e = \text{State}$,\newline $s \in V$
+                           & $\mathit{Fired}(\mathit{entered}(e),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = s$  \\[4pt]
+        $\mathit{transmit}(t,\, e,\, \mathit{expr})$
+                           & $t \in T$,\newline $e \in E,\ t_e = \text{Channel}$,\newline $\mathit{expr} \in \mathbf{Expr}$
+                           & $\mathit{Fired}(\mathit{transmitted}(e),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$      \\[4pt]
+        $\mathit{receive}(t,\, e_{\mathit{src}},\, e_{\mathit{dst}})$
+                           & $t \in T$,\newline $e_{\mathit{src}} \in E,\ t_{e_{\mathit{src}}} = \text{Channel}$,\newline $e_{\mathit{dst}} \in E,\ t_{e_{\mathit{dst}}} = \text{Signal}$
+                           & $\mathit{Fired}(\mathit{received}(e_{\mathit{src}}),\, t)$ \newline $\mathit{Val}_\rho(e_{\mathit{dst}},\, t) = \mathit{Val}_\rho(e_{\mathit{src}},\, t)$  \\
         \bottomrule
     \end{tabularx}
     \medskip
@@ -589,6 +609,8 @@ conjunction $P_1 \land P_2$, disjunction $P_1 \lor P_2$, and negation $\lnot P$.
     \item Need to resolve undefined with time functions.
     \item Last n-th occurence.
     \item From time to predicates that hold? What would that be useful for? Do we really want to reference predicates in other predicates?
+    \item \textbf{Open question -- Channel/transmit semantics}: the transmitted value persists on the channel until the next \textit{transmit}, so \textit{receive} at any $t' \geq t$ reads the last transmitted value. It is unclear whether this is the right model for all channel types, or whether some channels should require the receiver to observe the value at the exact transmission time.
+    \item \textbf{Open question -- Synchronous channel model}: the current model is asynchronous -- \textit{transmit} and \textit{receive} are independent operations that may occur at different times. An alternative synchronous model would have \textit{transmit} directly cause \textit{received} to fire at the same time $t$, making \textit{receive} a consequence of \textit{transmit} rather than a separate operation.
 \end{itemize}
 
 \section{Examples}
