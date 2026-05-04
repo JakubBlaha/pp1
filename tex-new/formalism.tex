@@ -321,6 +321,17 @@ The following functions are defined for both time flavours.
     \]
 \end{definition}
 
+\subsubsection{Entity attribute accessors}\label{subsec:entity_attrs}
+
+These expressions return static properties of entities and do not depend on the trace or time.
+
+\begin{definition}[Address]\label{def:addr}
+    For a \texttt{Storage} entity $e \in E$ carrying an address modifier, $\mathit{Addr} : E \rightarrow V$ returns the static address value:
+    \[
+        \mathit{Addr}(e) \;=\; m_e(\mathit{address})
+    \]
+\end{definition}
+
 \subsubsection{Trace functions}\label{subsec:trace}
 
 Expressions are terms that evaluate to a value in $V$ given a trace $\rho$.
@@ -433,6 +444,13 @@ We write $\mathbf{Pred}$ for the set of all predicates.
     For an entity $e \in E$ with $t_e = \text{Event}$ and a time point $t \in T$:
     \[
         \mathit{Fired}(e,\, t) \;\Leftrightarrow\; \mathit{Val}_\rho(e,\, t) = \mathit{true}
+    \]
+\end{definition}
+
+\begin{definition}[Event has fired]\label{def:pred_has_fired}
+    For an entity $e \in E$ with $t_e = \text{Event}$ and a time point $t \in T$:
+    \[
+        \mathit{HasFired}_\rho(e,\, t) \;\Leftrightarrow\; \exists t' \leq t:\; \mathit{Fired}(e,\, t')
     \]
 \end{definition}
 
@@ -603,8 +621,9 @@ Both requirements and test cases operate over the same shared entity set $E$, wh
 A requirement is a formal constraint on the system's behaviour, expressed as a trace predicate.
 
 \begin{definition}[Requirement]\label{def:requirement}
-    A \emph{requirement} is a pair $R = (\mathit{entities},\, \mathit{constraint})$ where:
+    A \emph{requirement} is a triple $R = (\mathit{flavour},\, \mathit{entities},\, \mathit{constraint})$ where:
     \begin{itemize}
+        \item $\mathit{flavour} \in \{\text{Discrete},\, \text{Continuous}\}$ fixes the time set $T$ for this requirement ($T_D$ or $T_C$ respectively), determining which expressions and temporal constructs are well-typed
         \item $\mathit{entities} \subseteq E$ is the set of entities participating in this requirement
         \item $\mathit{constraint} \in \mathbf{TracePred}$ is the formal constraint on the trace
     \end{itemize}
@@ -650,27 +669,165 @@ Together, $\mathit{setup}$ and $\mathit{stimuli}$ define a trace $\rho$. The cov
 \medskip
 \textbf{Entities:}
 \begin{itemize}
-    \item $\mathit{enter\_emergency} \in E$ of type \texttt{Event}
-    \item $\mathit{counter\_1} \in E$ of type \texttt{Signal}
+    \item $\mathit{enter\_emergency} \in E,\ t_e = \text{Event}$
+    \item $\mathit{counter\_1} \in E,\ t_e = \text{Signal}$
 \end{itemize}
 
-\textbf{Formalization:}
+\textbf{Constraint:}
+\begin{align*}
+    \mathit{Always}\Bigl(\;
+        \mathit{HasFired}_\rho(\mathit{enter\_emergency},\, \mathit{Now})
+        \Rightarrow \mathit{Val}_\rho(\mathit{counter\_1},\, \mathit{Now}) = \mathit{Val}_\rho(\mathit{counter\_1},\, \mathit{Prev}(\mathit{Now})) + 3
+    \;\Bigr)
+\end{align*}
+
+The antecedent holds at time $t$ iff $\mathit{enter\_emergency}$ has fired at least once up to $t$.
+The consequent requires $\mathit{counter\_1}$ to equal its previous value plus 3 at every such time step.
+
+\subsection{Req 01 -- Arithmetic recurrence with condition}
+
+\textbf{Requirement:} The signal \textit{EngagementNoSat\_u} shall equal $1.2 \times \mathit{EngagementNoSat\_u}(k{-}1)$ when \textit{Switch\_b} is true, and \textit{Lon\_u} otherwise. The initial value is 0.
+
+\medskip
+\textbf{Entities:}
+\begin{itemize}
+    \item $\mathit{EngagementNoSat\_u} \in E,\ t_e = \text{Signal}$
+    \item $\mathit{Switch\_b} \in E,\ t_e = \text{Signal}$
+    \item $\mathit{Lon\_u} \in E,\ t_e = \text{Signal}$
+\end{itemize}
+
+\textbf{Flavour:} Discrete.
+
+\textbf{Constraint:}
+\begin{align*}
+    &\mathit{Initial}\bigl(\mathit{Val}_\rho(\mathit{EngagementNoSat\_u},\, 0) = 0\bigr) \\
+    \land\; &\mathit{Always}\Bigl(\\
+    &\quad \bigl(\mathit{Val}_\rho(\mathit{Switch\_b},\, \mathit{Now}) = \mathit{true}\bigr) \Rightarrow {} \\
+    &\qquad \mathit{Val}_\rho(\mathit{EngagementNoSat\_u},\, \mathit{Now}) = 1.2 \cdot \mathit{Val}_\rho(\mathit{EngagementNoSat\_u},\, \mathit{Prev}(\mathit{Now}))\\
+    &\land\; \bigl(\mathit{Val}_\rho(\mathit{Switch\_b},\, \mathit{Now}) \neq \mathit{true}\bigr) \Rightarrow {} \\
+    &\qquad \mathit{Val}_\rho(\mathit{EngagementNoSat\_u},\, \mathit{Now}) = \mathit{Val}_\rho(\mathit{Lon\_u},\, \mathit{Now})
+    \;\Bigr)
+\end{align*}
+
+\subsection{Req 02 -- Store to non-volatile memory}
+
+\textbf{Requirement:} The software shall store the maximum execution time measurement data in non-volatile memory at address \textit{MEASUREMT\_BLOCK}.
+
+\textbf{TOTO ASI UPLNE NENI TO CO CHCEME. :(}
+
+\medskip
+\textbf{Entities:}
+\begin{itemize}
+    \item $\mathit{max\_exec\_time\_data} \in E,\ t_e = \text{Abstract}$
+    \item $\mathit{MEASUREMT\_BLOCK} \in E,\ t_e = \text{Storage},\ m_e = \{\mathit{non\_volatile}\}$
+\end{itemize}
+
+\textbf{Flavour:} Discrete.
+
+\textbf{Constraint:}
 \[
-    \mathit{Always}\!\left(
-        \mathit{Cmp}\!\left(
-                \mathit{EvtOccCount}_\rho(\mathit{enter\_emergency},\, \mathit{SinceZero}(\mathit{Now})),\,
-                \geq,\, 1
-            \right)
-        \Rightarrow\right.
-\]
-\[
-    \left.\quad
-            \mathit{Val}_\rho(\mathit{counter\_1},\, \mathit{Now}) = \mathit{Val}_\rho(\mathit{counter\_1},\, \mathit{Prev}(\mathit{Now})) + 3
-    \right)
+    \mathit{Eventually}\Bigl(
+        \mathit{Val}_\rho(\mathit{MEASUREMT\_BLOCK},\, \mathit{Now}) = \mathit{Val}_\rho(\mathit{max\_exec\_time\_data},\, \mathit{Now})
+    \Bigr)
 \]
 
-The condition $\mathit{EvtOccCount}_\rho(\mathit{enter\_emergency},\, \mathit{SinceZero}(\mathit{Now})) \geq 1$ holds at time $t$ iff the event has fired at least once up to $t$, effectively meaning ``emergency mode has been entered.''
-The inner predicate then requires $\mathit{counter\_1}$ to equal its previous value plus 3 at every such time step.
+\subsection{Req 03 -- Ordered read then store to CPU register}
 
+\textbf{Requirement:} The software must perform the following actions in the specified order:
+1) Read the calibration constant value at the address 0xAA000018;
+2) Store the calibration constant value in the DTSCON register.
+
+\medskip
+\textbf{Entities:}
+\begin{itemize}
+    \item $\mathit{calibration\_const} \in E,\ t_e = \text{Storage},\ m_e = \{\mathit{address} = \texttt{0xAA000018}\}$
+    \item $\mathit{DTSCON} \in E,\ t_e = \text{Storage},\ m_e = \{\mathit{register}\}$
+\end{itemize}
+
+\textbf{Flavour:} Discrete.
+
+\textbf{Constraint:}
+\[
+    \mathit{Sequence}\Bigl(
+        \mathit{Fired}(\mathit{read}(\mathit{calibration\_const}),\, \mathit{Now}),\;
+        \mathit{Fired}(\mathit{written}(\mathit{DTSCON}),\, \mathit{Now})
+    \Bigr)
+\]
+
+\subsection{Req 04 -- Exception vector table configuration}
+
+\textbf{Requirement:} The software must configure IVORx registers with the addresses of Exception Vectors that compose the Exception Vector Table, according to the following table:
+\begin{center}
+\begin{tabular}{ll}
+    \toprule
+    \textbf{IVORx} & \textbf{Exception} \\
+    \midrule
+    IVOR0 & Critical input \\
+    IVOR1 & Machine check \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\medskip
+\textbf{Entities:}
+\begin{itemize}
+    \item $\mathit{IVOR0} \in E,\ t_e = \text{Storage},\ m_e = \{\mathit{register}\}$
+    \item $\mathit{IVOR1} \in E,\ t_e = \text{Storage},\ m_e = \{\mathit{register}\}$
+    \item $\mathit{CriticalInput} \in E,\ t_e = \text{Storage}$
+    \item $\mathit{MachineCheck} \in E,\ t_e = \text{Storage}$
+\end{itemize}
+
+\textbf{Flavour:} Discrete.
+
+\textbf{Constraint:}
+\[
+    \mathit{Eventually}\Bigl(
+        \mathit{Val}_\rho(\mathit{IVOR0},\, \mathit{Now}) = \mathit{Addr}(\mathit{CriticalInput})
+        \;\land\;
+        \mathit{Val}_\rho(\mathit{IVOR1},\, \mathit{Now}) = \mathit{Addr}(\mathit{MachineCheck})
+    \Bigr)
+\]
+
+\subsection{Req 13 -- Bounded count of large register values}
+
+\textbf{Requirement:} The number of values larger than 10 in the four registers A, B, C, D when they are read at the same timestep is never greater than 2.
+
+\medskip
+\textbf{Entities:}
+\begin{itemize}
+    \item $A \in E,\ t_e = \text{Storage},\ m_e = \{\mathit{register}\}$
+    \item $B \in E,\ t_e = \text{Storage},\ m_e = \{\mathit{register}\}$
+    \item $C \in E,\ t_e = \text{Storage},\ m_e = \{\mathit{register}\}$
+    \item $D \in E,\ t_e = \text{Storage},\ m_e = \{\mathit{register}\}$
+\end{itemize}
+
+\textbf{Flavour:} Discrete.
+
+\textbf{Constraint:}
+
+Let $\mathit{big}(e) \;\triangleq\; \mathit{Val}_\rho(e,\, \mathit{Now}) > 10$ for $e \in \{A, B, C, D\}$.
+``At most 2 of the four registers exceed 10'' is equivalent to ``no 3-element subset all exceed 10'', i.e.\ $\neg(\text{at least 3 exceed 10})$.
+Since there are $\binom{4}{3} = 4$ such subsets, the constraint is:
+
+\begin{align*}
+    \mathit{Always}\Bigl(
+        &\mathit{AllOf}\bigl(\{\,
+            \mathit{Fired}(\mathit{read}(A),\, \mathit{Now}),\;
+            \mathit{Fired}(\mathit{read}(B),\, \mathit{Now}),\\
+        &\quad
+            \mathit{Fired}(\mathit{read}(C),\, \mathit{Now}),\;
+            \mathit{Fired}(\mathit{read}(D),\, \mathit{Now})
+        \,\}\bigr) \\
+        &\Rightarrow \mathit{Not}\Bigl(\mathit{AnyOf}\bigl(\{\\
+        &\qquad \mathit{AllOf}(\{\mathit{big}(A),\, \mathit{big}(B),\, \mathit{big}(C)\}),\\
+        &\qquad \mathit{AllOf}(\{\mathit{big}(A),\, \mathit{big}(B),\, \mathit{big}(D)\}),\\
+        &\qquad \mathit{AllOf}(\{\mathit{big}(A),\, \mathit{big}(C),\, \mathit{big}(D)\}),\\
+        &\qquad \mathit{AllOf}(\{\mathit{big}(B),\, \mathit{big}(C),\, \mathit{big}(D)\})\\
+        &\}\bigr)\Bigr)
+    \Bigr)
+\end{align*}
+
+The antecedent holds at time $t$ iff all four registers are read simultaneously.
+The consequent rules out every possible combination of three registers all exceeding 10, which is necessary and sufficient for at most two values to be greater than 10.
 
 \end{document}
