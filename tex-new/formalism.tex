@@ -95,17 +95,19 @@ These primitive sets serve as the base that the rest of the formalism builds on.
 \end{itemize}
 
 \begin{definition}[Discrete time set]\label{def:time_discrete}
-    The \emph{discrete time set} $T_D$ is totally ordered and countable.
+    The \emph{discrete time set} $T_D$ is totally ordered and countable, extended with a greatest element $\infty$:
     \[
-        T_D = \mathbb{N}
+        T_D = \mathbb{N} \cup \{\infty\}
     \]
+    The ordering is the usual order on $\mathbb{N}$ with $\forall n \in \mathbb{N}: n < \infty$.
 \end{definition}
 
 \begin{definition}[Continuous time set]\label{def:time_continuous}
-    The \emph{continuous time set} $T_C$ is totally ordered and uncountable.
+    The \emph{continuous time set} $T_C$ is totally ordered and uncountable, extended with a greatest element $\infty$:
     \[
-        T_C = \mathbb{R}_{\geq 0}
+        T_C = \mathbb{R}_{\geq 0} \cup \{\infty\}
     \]
+    The ordering is the usual order on $\mathbb{R}_{\geq 0}$ with $\forall x \in \mathbb{R}_{\geq 0}: x < \infty$.
 \end{definition}
 
 \begin{definition}[Duration]\label{def:duration}
@@ -527,48 +529,59 @@ The operation is applied to some entity, which means that the argument list of e
     We write $O$ for the set of all operations.
 \end{definition}
 
+% TODO fix the following
+
 \begin{definition}[Entity type operations function]\label{def:entity_type_ops_fn}
     \[
         O_T : T_E \times \mathcal{P}(M) \rightarrow \mathcal{P}(O)
     \]
-    maps each entity type and set of modifiers to its applicable operations.\footnote{$O = \bigcup_{\tau \in T_E,\, \mu \subseteq M} O_T(\tau,\, \mu)$.}
-
-    The concrete mapping, including argument types and effects, is as follows.
-    In effect predicates, $t_{\mathit{next}}$ denotes the next time the same operation fires on the same entity after $t$, or $\infty$ if no such firing occurs.
-
-    \medskip
-    \renewcommand{\arraystretch}{2}
-    \begin{tabularx}{\textwidth}{lXX}
-        \toprule
-        \textbf{Operation} & \textbf{Notes}                                                                    & \textbf{Effect predicates} \\
-        \midrule
-        $\mathit{calculate}(t,\, e,\, \mathit{expr})$
-                           & $t \in T$,\newline $e \in E,\ t_e = \text{Signal}$,\newline $\mathit{expr} \in \mathbf{Expr}$
-                           & $\mathit{Happening}(\mathit{calculated}(e),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$                  \\[4pt]
-        $\mathit{write}(t,\, e,\, \mathit{expr})$
-                           & $t \in T$,\newline $e \in E,\ t_e = \text{Storage}$,\newline $\mathit{expr} \in \mathbf{Expr}$
-                           & $\mathit{Happening}(\mathit{written}(e),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$                  \\[4pt]
-        $\mathit{read}(t,\, e_{\mathit{src}},\, e_{\mathit{dst}})$
-                           & $t \in T$,\newline $e_{\mathit{src}} \in E,\ t_{e_{\mathit{src}}} = \text{Storage}$,\newline $e_{\mathit{dst}} \in E,\ t_{e_{\mathit{dst}}} = \text{Signal}$
-                           & $\mathit{Happening}(\mathit{read}(e_{\mathit{src}}),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e_{\mathit{dst}},\, t') = \mathit{Val}_\rho(e_{\mathit{src}},\, t)$  \\[4pt]
-        $\mathit{fire}(t,\, e)$
-                           & $t \in T$, $e \in E,\ t_e = \text{Event}$
-                           & $\mathit{Happening}(e,\, t)$                                                                                            \\[4pt]
-        $\mathit{set\_state}(t,\, e,\, s)$
-                           & $t \in T$,\newline $e \in E,\ t_e = \text{State}$,\newline $s \in V$
-                           & $\mathit{Happening}(\mathit{entered}(e),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = s$  \\[4pt]
-        $\mathit{transmit}(t,\, e,\, \mathit{expr})$
-                           & $t \in T$,\newline $e \in E,\ t_e = \text{Channel}$,\newline $\mathit{expr} \in \mathbf{Expr}$
-                           & $\mathit{Happening}(\mathit{transmitted}(e),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$      \\[4pt]
-        $\mathit{receive}(t,\, e_{\mathit{src}},\, e_{\mathit{dst}})$
-                           & $t \in T$,\newline $e_{\mathit{src}} \in E,\ t_{e_{\mathit{src}}} = \text{Channel}$,\newline $e_{\mathit{dst}} \in E,\ t_{e_{\mathit{dst}}} = \text{Signal}$
-                           & $\mathit{Happening}(\mathit{received}(e_{\mathit{src}}),\, t)$ \newline $\mathit{Val}_\rho(e_{\mathit{dst}},\, t) = \mathit{Val}_\rho(e_{\mathit{src}},\, t)$  \\
-        \bottomrule
-    \end{tabularx}
-    \medskip
-
-    % \noindent Here $\mathit{ValueAt}(a)$ denotes the value stored at memory address $a$.
+    maps each entity type and set of modifiers to its applicable operations.\footnote{It holds that $O = \bigcup_{\tau \in T_E,\, \mu \subseteq M} O_T(\tau,\, \mu)$.}
 \end{definition}
+
+The concrete mapping, including argument types and effects, is as follows.
+In effect predicates, $t_{\mathit{next}}$ denotes the next time the same operation fires on the same entity after $t$, or $\infty$ if no such firing occurs:
+
+\[
+    t_{\mathit{next}} = \begin{cases}
+        \min\{\, t' \in T \mid t' > t \;\land\; \mathit{op} \text{ fires on } e \text{ at } t' \,\} & \text{if such } t' \text{ exists} \\
+        \infty & \text{otherwise}
+    \end{cases}
+\]
+
+, where $t$ is the time of the current firing of the operation on entity $e$.
+
+% TODO: define the event names in the effect predicates.
+
+\medskip
+\renewcommand{\arraystretch}{2}
+\begin{tabularx}{\textwidth}{lXX}
+    \toprule
+    \textbf{Operation} & \textbf{Notes}                                                                    & \textbf{Effect predicates} \\
+    \midrule
+    $\mathit{calculate}(t,\, e,\, \mathit{expr})$
+                       & $t \in T$,\newline $e \in E,\ t_e = \text{Signal}$,\newline $\mathit{expr} \in \mathbf{Expr}$
+                       & $\mathit{Happening}(\mathit{calculated}(e),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$                  \\[4pt]
+    $\mathit{write}(t,\, e,\, \mathit{expr})$
+                       & $t \in T$,\newline $e \in E,\ t_e = \text{Storage}$,\newline $\mathit{expr} \in \mathbf{Expr}$
+                       & $\mathit{Happening}(\mathit{written}(e),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$                  \\[4pt]
+    $\mathit{read}(t,\, e_{\mathit{src}},\, e_{\mathit{dst}})$
+                       & $t \in T$,\newline $e_{\mathit{src}} \in E,\ t_{e_{\mathit{src}}} = \text{Storage}$,\newline $e_{\mathit{dst}} \in E,\ t_{e_{\mathit{dst}}} = \text{Signal}$
+                       & $\mathit{Happening}(\mathit{read}(e_{\mathit{src}}),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e_{\mathit{dst}},\, t') = \mathit{Val}_\rho(e_{\mathit{src}},\, t)$  \\[4pt]
+    $\mathit{fire}(t,\, e)$
+                       & $t \in T$, $e \in E,\ t_e = \text{Event}$
+                       & $\mathit{Happening}(e,\, t)$                                                                                            \\[4pt]
+    $\mathit{set\_state}(t,\, e,\, s)$
+                       & $t \in T$,\newline $e \in E,\ t_e = \text{State}$,\newline $s \in V$
+                       & $\mathit{Happening}(\mathit{entered}(e),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = s$  \\[4pt]
+    $\mathit{transmit}(t,\, e,\, \mathit{expr})$
+                       & $t \in T$,\newline $e \in E,\ t_e = \text{Channel}$,\newline $\mathit{expr} \in \mathbf{Expr}$
+                       & $\mathit{Happening}(\mathit{transmitted}(e),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$      \\[4pt]
+    $\mathit{receive}(t,\, e_{\mathit{src}},\, e_{\mathit{dst}})$
+                       & $t \in T$,\newline $e_{\mathit{src}} \in E,\ t_{e_{\mathit{src}}} = \text{Channel}$,\newline $e_{\mathit{dst}} \in E,\ t_{e_{\mathit{dst}}} = \text{Signal}$
+                       & $\mathit{Happening}(\mathit{received}(e_{\mathit{src}}),\, t)$ \newline $\mathit{Val}_\rho(e_{\mathit{dst}},\, t) = \mathit{Val}_\rho(e_{\mathit{src}},\, t)$  \\
+    \bottomrule
+\end{tabularx}
+\medskip
 
 \section{Temporal constructs}
 
