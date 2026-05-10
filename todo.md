@@ -12,6 +12,30 @@
 - Trace I k reálnému času, ne jenom logickému času, zatím stačí logický
 - dame predikat, vrati cas kdy predikat plati, pomoci toho by se dal definovat i event
 
+Todo by me:
+- big sigma is used in multiple places, we should use words more instead of symbols
+
+# Latest poznamky od smrcky
+
+- modifiers jsou dopredu nedefinovane, ale nejsme si tim jisti
+- entita muze mit nedefinovanou hodnotu -- v nejakem case entita nemusi existovat
+- mnozina entit neni definovana, konecna nebo nekonecna -- konecna
+- fire prejmenovat na happened
+- prepsat formalne t_next
+- u mnozin definovat, jestli jsou konecne a neprazdne
+- updatnout expressions (mozna ode me)
+- definice operatoru je confusing -- to, co mi vygeneroval claude a ani jsem to poradne nezkontroloval
+- diskretizace spojiteho casu pomoci time elementu -- moznost realtime definice prev a next, pocita se s elementem
+
+
+
+
+
+
+
+
+
+
 # Ja
 
 - dictionary neni self explanatory
