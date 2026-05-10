@@ -38,7 +38,6 @@
 %    bounds, negative cases for guards, ordering violation tests for strict sequences.
 %
 % KNOWN OPEN ISSUES (see Notes section and todo.md):
-%    - Modifiers need to be parameterised
 %    - Discrete vs continuous time flavour handling
 %    - Partiality of time functions (Prev at t=0)
 
@@ -166,42 +165,39 @@ Each entity type has a set of \emph{predefined events} — events that fire auto
     All other entity types have no predefined events.
 \end{definition}
 
-Entity type modifiers are properties which can be attached to
-an entity of a particular type. Semantics are defined for each modifier.
+Entity type modifiers are properties which can be attached to an entity of a particular type.
+A modifier is either a \emph{flag} (whose presence alone carries meaning) or a \emph{parameterised modifier} (which additionally carries a value in $V$).
 
-Each entity type is compatible with only a subset of the entity modifiers.
+Each entity type is compatible with only a subset of the modifier keys.
 Therefore we define the \textit{entity type modifiers function}.
 
 \begin{definition}[Entity type modifiers function]\label{def:entity_type_modifiers_fn}
     \[
-        M_\text{E}: T_E \rightarrow \mathcal{P}(M)
+        M_\text{E}: T_E \rightarrow \mathcal{P}(\mathit{ModKey})
     \]
 
-    , where $M$ is the set of entity type modifiers and $\mathcal{P}(M)$ is the power set of $M$.
+    , where $\mathit{ModKey}$ is the set of modifier keys and $\mathcal{P}(\mathit{ModKey})$ is the power set of $\mathit{ModKey}$.
 \end{definition}
-
-% \begin{definition}[Entity type]\label{def:entity_type}
-%     \[
-%         T_e
-%     \]
-% \end{definition}
 
 An entity is something that is referenced in the requirement.
 Formally, entity is defined as a four-item tuple.
 
 \begin{definition}[Entity]\label{def:entity}
     \[
-        e = (n_e, t_e, m_e, d_e)
+        e = (n_e, t_e, \mu_e, d_e)
     \]
 
     , where
     \begin{itemize}
         \item $n_e$ is the name of the entity; $n_e \in N_E$
-        \item $t_e$ is the name of the entity; $t_e \in T_E$
-        \item $m_e$ is the set of modifiers of the entity; $m_e \in T_E$, $m_e \subseteq M_E(t_e)$
+        \item $t_e$ is the type of the entity; $t_e \in T_E$
+        \item $\mu_e$ is the modifier assignment function of the entity; $\mu_e : \mathit{ModKey} \rightharpoonup V$, $\mathrm{dom}(\mu_e) \subseteq M_E(t_e)$
         \item $d_e$ is the description of the entity; $d_e \in \Sigma^*$
-    \end{itemize}
+    \end{itemize}, where $dom(\mu_e)$ denotes the domain of the function $\mu_e$. 
 \end{definition}
+
+Note that $\mathrm{dom}(\mu_e)$ is a subset of the set of modifier keys compatible with the entity type $t_e$; no value needs to be defined for each modifier key compatible with $t_e$.
+
 
 \section{Valuations and traces}
 
@@ -325,10 +321,12 @@ The following functions are defined for both time flavours.
 
 These expressions return static properties of entities and do not depend on the trace or time.
 
+% TODO: this needs to be fixed
+
 \begin{definition}[Address]\label{def:addr}
     For a \texttt{Storage} entity $e \in E$ carrying an address modifier, $\mathit{Addr} : E \rightarrow V$ returns the static address value:
     \[
-        \mathit{Addr}(e) \;=\; m_e(\mathit{address})
+        \mathit{Addr}(e) \;=\; \mu_e(\mathit{address})
     \]
 \end{definition}
 
@@ -719,7 +717,7 @@ The consequent requires $\mathit{counter\_1}$ to equal its previous value plus 3
 \textbf{Entities:}
 \begin{itemize}
     \item $\mathit{max\_exec\_time\_data} \in E,\ t_e = \text{Abstract}$
-    \item $\mathit{MEASUREMT\_BLOCK} \in E,\ t_e = \text{Storage},\ m_e = \{\mathit{non\_volatile}\}$
+    \item $\mathit{MEASUREMT\_BLOCK} \in E,\ t_e = \text{Storage},\ \mu_e = \{\mathit{non\_volatile} \mapsto \top\}$
 \end{itemize}
 
 \textbf{Flavour:} Discrete.
@@ -740,8 +738,8 @@ The consequent requires $\mathit{counter\_1}$ to equal its previous value plus 3
 \medskip
 \textbf{Entities:}
 \begin{itemize}
-    \item $\mathit{calibration\_const} \in E,\ t_e = \text{Storage},\ m_e = \{\mathit{address} = \texttt{0xAA000018}\}$
-    \item $\mathit{DTSCON} \in E,\ t_e = \text{Storage},\ m_e = \{\mathit{register}\}$
+    \item $\mathit{calibration\_const} \in E,\ t_e = \text{Storage},\ \mu_e = \{\mathit{address} \mapsto \texttt{0xAA000018}\}$
+    \item $\mathit{DTSCON} \in E,\ t_e = \text{Storage},\ \mu_e = \{\mathit{register} \mapsto \top\}$
 \end{itemize}
 
 \textbf{Flavour:} Discrete.
@@ -771,8 +769,8 @@ The consequent requires $\mathit{counter\_1}$ to equal its previous value plus 3
 \medskip
 \textbf{Entities:}
 \begin{itemize}
-    \item $\mathit{IVOR0} \in E,\ t_e = \text{Storage},\ m_e = \{\mathit{register}\}$
-    \item $\mathit{IVOR1} \in E,\ t_e = \text{Storage},\ m_e = \{\mathit{register}\}$
+    \item $\mathit{IVOR0} \in E,\ t_e = \text{Storage},\ \mu_e = \{\mathit{register} \mapsto \top\}$
+    \item $\mathit{IVOR1} \in E,\ t_e = \text{Storage},\ \mu_e = \{\mathit{register} \mapsto \top\}$
     \item $\mathit{CriticalInput} \in E,\ t_e = \text{Storage}$
     \item $\mathit{MachineCheck} \in E,\ t_e = \text{Storage}$
 \end{itemize}
@@ -795,10 +793,10 @@ The consequent requires $\mathit{counter\_1}$ to equal its previous value plus 3
 \medskip
 \textbf{Entities:}
 \begin{itemize}
-    \item $A \in E,\ t_e = \text{Storage},\ m_e = \{\mathit{register}\}$
-    \item $B \in E,\ t_e = \text{Storage},\ m_e = \{\mathit{register}\}$
-    \item $C \in E,\ t_e = \text{Storage},\ m_e = \{\mathit{register}\}$
-    \item $D \in E,\ t_e = \text{Storage},\ m_e = \{\mathit{register}\}$
+    \item $A \in E,\ t_e = \text{Storage},\ \mu_e = \{\mathit{register} \mapsto \top\}$
+    \item $B \in E,\ t_e = \text{Storage},\ \mu_e = \{\mathit{register} \mapsto \top\}$
+    \item $C \in E,\ t_e = \text{Storage},\ \mu_e = \{\mathit{register} \mapsto \top\}$
+    \item $D \in E,\ t_e = \text{Storage},\ \mu_e = \{\mathit{register} \mapsto \top\}$
 \end{itemize}
 
 \textbf{Flavour:} Discrete.
