@@ -89,9 +89,9 @@ The formalism is designed around two mandatory properties.
 
 These primitive sets serve as the base that the rest of the formalism builds on. The primitive sets are the following:
 \begin{itemize}
-    \item $T_D$, $T_C$ -- the \textit{discrete time} and \textit{continuous time} sets.
-          An infinite totally ordered set; the time set can have \textit{discrete} or \textit{continuous} flavour; exactly one flavour is chosen per requirement.
-    \item $V$ -- the $Values$ set. These can be used to describe the values of entities.
+    \item $T_D$, $T_C$ -- the \textit{discrete time} and \textit{continuous time} sets respectively.
+    
+    \item $V$ -- the values set. These can be used to describe the values of entities and expressions, predicates, etc. evaluate to the elements of this set.
 \end{itemize}
 
 \begin{definition}[Discrete time set]\label{def:time_discrete}
@@ -109,6 +109,8 @@ These primitive sets serve as the base that the rest of the formalism builds on.
     \]
     The ordering is the usual order on $\mathbb{R}_{\geq 0}$ with $\forall x \in \mathbb{R}_{\geq 0}: x < \infty$.
 \end{definition}
+
+We say that $T$ is an infinite totally ordered set; the time set can have \textit{discrete} or \textit{continuous} flavour; In the scope of a single requirement, $T$ is equal either to $T_D$ or $T_C$.
 
 \begin{definition}[Duration]\label{def:duration}
     A \emph{duration} is a non-negative element of the time set, representing the length of a time span:
