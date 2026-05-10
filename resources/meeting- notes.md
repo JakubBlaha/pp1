@@ -1,0 +1,2 @@
+- Maybe we can completely remove the idea of entity types, since they are defined using operations and modifiers can now be made arbitraty.
+- The set $E$ is finite in the scope of a single reqirement, but infinite in the scope of all possible requirements.
