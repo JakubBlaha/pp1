@@ -138,7 +138,7 @@ We say that $T$ is an infinite totally ordered set; the time set can have \texti
 
 \section{Entities and entity types}
 
-An entity type is an item belonging to a set of predefined entity types.
+An entity type is an item belonging to a set of entity types. There is a number of defined entity types and this set is open to extension.
 
 \begin{definition}[Entity type set]\label{def:entity_type_set}
     \[
@@ -146,15 +146,10 @@ An entity type is an item belonging to a set of predefined entity types.
     \]
 \end{definition}
 
-\begin{definition}[Entity name set]\label{def:entity_name_set}
-    \[
-        N_\text{E} \subseteq \Sigma^*
-    \]
-
-    , where $\Sigma$ is an alphabet.
-\end{definition}
-
 Each entity type has a set of \emph{predefined events} — events that fire automatically as a result of operations on the entity, without requiring explicit user declaration.
+
+
+% TODO fix this, are we using this?
 
 \begin{definition}[Predefined events function]\label{def:predefined_events}
     $PE : T_E \rightarrow \mathcal{P}(\mathit{EventKind})$ maps each entity type to its set of predefined event kinds.
@@ -175,12 +170,15 @@ A modifier is either a \emph{flag} (whose presence alone carries meaning) or a \
 Each entity type is compatible with only a subset of the modifier keys.
 Therefore we define the \textit{entity type modifiers function}.
 
+
+% TODO define modifierKeys set
+
 \begin{definition}[Entity type modifiers function]\label{def:entity_type_modifiers_fn}
     \[
         M_\text{E}: T_E \rightarrow \mathcal{P}(\mathit{ModKey})
     \]
 
-    , where $\mathit{ModKey}$ is the set of modifier keys and $\mathcal{P}(\mathit{ModKey})$ is the power set of $\mathit{ModKey}$.
+    , where $\mathit{ModKey}$ is a finite nonempty the set of modifier keys and $\mathcal{P}(\mathit{ModKey})$ is the power set of $\mathit{ModKey}$.
 \end{definition}
 
 An entity is something that is referenced in the requirement.
@@ -193,11 +191,11 @@ Formally, entity is defined as a four-item tuple.
 
     , where
     \begin{itemize}
-        \item $n_e$ is the name of the entity; $n_e \in N_E$
+        \item $n_e$ is the name of the entity; $n_e \in \Gamma^*$
         \item $t_e$ is the type of the entity; $t_e \in T_E$
         \item $\mu_e$ is the modifier assignment function of the entity; $\mu_e : \mathit{ModKey} \rightharpoonup V$, $\mathrm{dom}(\mu_e) \subseteq M_E(t_e)$ \footnote{$\mathrm{dom}(\mu_e)$ is a subset of the set of modifier keys compatible with the entity type $t_e$. It is not required that a value is defined for each modifier key compatible with $t_e$.}
-        \item $d_e$ is the description of the entity; $d_e \in \Sigma^*$
-    \end{itemize}, where $dom(\mu_e)$ denotes the domain of the function $\mu_e$. We write $E$ for the set of all entities. The set $E$ is finite.\footnote{The set $E$ is finite in the scope of a single requirement.}
+        \item $d_e$ is the description of the entity; $d_e \in \Gamma^*$
+    \end{itemize}, where $dom(\mu_e)$ denotes the domain of the function $\mu_e$. We write $E$ for the set of all entities. The set $E$ is finite and nonempty.\footnote{The set $E$ is finite in the scope of a single requirement.} $\Gamma^*$ is the set of all possible strings of some alphabet $\Gamma$.
 \end{definition}
 
 
@@ -210,7 +208,7 @@ Formally, entity is defined as a four-item tuple.
     where $\sigma(e) = \mathit{true}$ iff the event occurs at that time point.
 \end{definition}
 
-We write $\Sigma$ for the set of all valuations.
+We write $\Sigma$ for the infinite set of all valuations.
 
 \begin{definition}[Trace]\label{def:trace}
     A trace is a function $\rho : T \to \Sigma$. We write $\rho(t)(e)$ for the value of entity $e$ at time $t$.
@@ -223,7 +221,7 @@ We write $\Sigma^T$ for the set of all traces, i.e.\ the set of all functions fr
 \section{Expressions and predicates}
 
 All expression functions defined in this section evaluate to a value in $V$.
-We write $\mathbf{Expr}$ for the set of all expressions.
+We write $\mathbf{Expr}$ for the infinite set of all expressions.
 Functions in \S\ref{subsec:time} (\nameref{subsec:time}) depend only on time points or intervals.
 Functions in \S\ref{subsec:trace} (\nameref{subsec:trace}) additionally take a trace $\rho \in \Sigma^T$
 and produce values that reflect the state of the system over time.
@@ -396,7 +394,7 @@ Expressions are terms that evaluate to a value in $V$ given a trace $\rho$.
 \subsection{Predicates}\label{subsec:predicates}
 
 A predicate is a function that evaluates to a value in $\mathbb{B}$.
-We write $\mathbf{Pred}$ for the set of all predicates.
+We write $\mathbf{Pred}$ for the infinite set of all predicates.
 
 \begin{definition}[Boolean constants]\label{def:pred_bool}
     $\top \in \mathbf{Pred}$ and $\bot \in \mathbf{Pred}$ are the always-true and always-false predicates respectively.
@@ -528,7 +526,7 @@ The operation is applied to some entity, which means that the argument list of e
     for some $n \geq 0$ and additional argument types $A_i \subseteq V \cup E$, where $T$ is the time set and $E$ is the mandatory target entity.
     The predicate $op(t,\, e,\, a_1,\, \ldots,\, a_n)$ is the \emph{effect} of $op$ applied to entity $e$ at time $t$ -- it describes the condition that the operation causes to hold.
     The trigger condition that invokes an operation is specified at the requirement level.
-    We write $O$ for the set of all operations.
+    We write $O$ for the finite set of all operations.
 \end{definition}
 
 % TODO fix the following
