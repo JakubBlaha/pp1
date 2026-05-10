@@ -82,7 +82,7 @@ The formalism is designed around two mandatory properties.
 
 \begin{itemize}
 \item \textbf{extensibility} -- adding new entity kinds or operations must require only extending the entity type set $T_E$, the values set $V$, the entity type modifiers function $M_E$, and the entity type operations function $O_T$.
-\item \textbf{matchability} -- a formalised requirement and a formalised test case must be expressed using the same \textbf{predicates}, so that the coverage checker can determine which truth assignments to those predicates are exercised by the tests and which logical combinations are uncovered.
+\item \textbf{matchability} -- a formalised requirement and a formalised test case must be expressed using the same \textbf{predicates}, so that the coverage checker can determine which truth assignments to those predicates are exercised by the tests and which logical combinations remain uncovered.
 \end{itemize}
 
 \section{The primitives}
@@ -202,8 +202,8 @@ Note that $\mathrm{dom}(\mu_e)$ is a subset of the set of modifier keys compatib
 \section{Valuations and traces}
 
 \begin{definition}[Valuation]\label{def:valuation}
-    A valuation is a function $\sigma : E \to V$ assigning a value to every entity.
-    For entities of type \texttt{Event}, $\sigma(e) \in \{\mathit{true}, \mathit{false}\}$,
+    A valuation is a partial function $\sigma : E \rightharpoonup V$ assigning a value to a subset of entities at each time point\footnote{For instance a register entity can have its value undefined at time points preceeding a write to this register.}; $\sigma(e)$ is undefined when the entity has no defined value at that time point.
+    For entities of type \texttt{Event}, $\sigma(e)$ is always defined and $\sigma(e) \in \{\mathit{true}, \mathit{false}\}$,
     where $\sigma(e) = \mathit{true}$ iff the event occurs at that time point.
 \end{definition}
 
@@ -335,10 +335,11 @@ These expressions return static properties of entities and do not depend on the 
 Expressions are terms that evaluate to a value in $V$ given a trace $\rho$.
 
 \begin{definition}[]\label{def:expr_val}
-    For a trace $\rho \in \Sigma^T$, the function $\mathit{Val}_\rho: E \times T \rightarrow V$ denotes the value of entity $e \in E$ at time $t \in T$:
+    For a trace $\rho \in \Sigma^T$, the partial function $\mathit{Val}_\rho: E \times T \rightharpoonup V$ denotes the value of entity $e \in E$ at time $t \in T$:
     \[
         \mathit{Val}_\rho(e,\, t) \;=\; \rho(t)(e)
     \]
+    The function is partial: $\mathit{Val}_\rho(e,\, t)$ is undefined when $e \notin \mathrm{dom}(\rho(t))$.
 \end{definition}
 
 \begin{definition}[Event occurrence count]\label{def:evt_occ_count}
@@ -633,7 +634,7 @@ A test case exercises a subset of the same entities to produce a concrete trace,
 \begin{definition}[Test case]\label{def:test_case}
     A \emph{test case} is a pair $\mathit{TestCase} = (\mathit{setup},\, \mathit{stimuli})$ where:
     \begin{itemize}
-        \item $\mathit{setup}$ is a partial valuation $\sigma_0 : E' \to V$, $E' \subseteq E$, establishing the initial state of the relevant entities
+        \item $\mathit{setup}$ is a valuation $\sigma_0 : E \rightharpoonup V$ establishing the initial state of the relevant entities
         \item $\mathit{stimuli} : T \to \mathcal{P}(O)$ maps each time point to the set of operations that fire at that time; it has finite support (non-empty for only finitely many $t$)
     \end{itemize}
 \end{definition}
