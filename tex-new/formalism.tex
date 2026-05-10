@@ -61,7 +61,7 @@
 \newtheorem{definition}{Definition}
 \AtEndEnvironment{definition}{\vspace{0.5em}}
 
-\title{PP1 - Evaluating Test Coverage Against Software Requirements -- formal language}
+\title{PP1 - Evaluating Test Coverage Against Software Requirements -- formal base}
 \author{  }
 \date{April 2026}
 
@@ -71,12 +71,12 @@
 
 \section{Introduction}
 
-\subsection{The purpose of the formal language}
+\subsection{The purpose of the formal base}
 
-This document defines a logic-agnostic formal language for expressing software requirements and test cases.
+This document defines a logic-agnostic formal base for expressing software requirements and test cases.
 The goal is to enable mechanical detection of coverage gaps: given a set of requirements and a set of test cases, the checker determines which requirement conditions are not exercised by any test.
 
-\subsection{The design principles of the formal language}
+\subsection{The design principles of the formal base}
 
 The formalism is designed around two mandatory properties.
 
@@ -191,12 +191,11 @@ Formally, entity is defined as a four-item tuple.
     \begin{itemize}
         \item $n_e$ is the name of the entity; $n_e \in N_E$
         \item $t_e$ is the type of the entity; $t_e \in T_E$
-        \item $\mu_e$ is the modifier assignment function of the entity; $\mu_e : \mathit{ModKey} \rightharpoonup V$, $\mathrm{dom}(\mu_e) \subseteq M_E(t_e)$
+        \item $\mu_e$ is the modifier assignment function of the entity; $\mu_e : \mathit{ModKey} \rightharpoonup V$, $\mathrm{dom}(\mu_e) \subseteq M_E(t_e)$ \footnote{$\mathrm{dom}(\mu_e)$ is a subset of the set of modifier keys compatible with the entity type $t_e$. It is not required that a value is defined for each modifier key compatible with $t_e$.}
         \item $d_e$ is the description of the entity; $d_e \in \Sigma^*$
     \end{itemize}, where $dom(\mu_e)$ denotes the domain of the function $\mu_e$. We write $E$ for the set of all entities.
 \end{definition}
 
-Note that $\mathrm{dom}(\mu_e)$ is a subset of the set of modifier keys compatible with the entity type $t_e$; no value needs to be defined for each modifier key compatible with $t_e$.
 
 
 \section{Valuations and traces}
