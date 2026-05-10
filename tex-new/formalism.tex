@@ -438,17 +438,17 @@ We write $\mathbf{Pred}$ for the set of all predicates.
     \]
 \end{definition}
 
-\begin{definition}[Event fired]\label{def:pred_fired}
+\begin{definition}[Event happening]\label{def:pred_happening}
     For an entity $e \in E$ with $t_e = \text{Event}$ and a time point $t \in T$:
     \[
-        \mathit{Fired}(e,\, t) \;\Leftrightarrow\; \mathit{Val}_\rho(e,\, t) = \mathit{true}
+        \mathit{Happening}(e,\, t) \;\Leftrightarrow\; \mathit{Val}_\rho(e,\, t) = \mathit{true}
     \]
 \end{definition}
 
-\begin{definition}[Event has fired]\label{def:pred_has_fired}
+\begin{definition}[Event has happened]\label{def:pred_has_happened}
     For an entity $e \in E$ with $t_e = \text{Event}$ and a time point $t \in T$:
     \[
-        \mathit{HasFired}_\rho(e,\, t) \;\Leftrightarrow\; \exists t' \leq t:\; \mathit{Fired}(e,\, t')
+        \mathit{HasHappened}_\rho(e,\, t) \;\Leftrightarrow\; \exists t' \leq t:\; \mathit{Happening}(e,\, t')
     \]
 \end{definition}
 
@@ -544,25 +544,25 @@ The operation is applied to some entity, which means that the argument list of e
         \midrule
         $\mathit{calculate}(t,\, e,\, \mathit{expr})$
                            & $t \in T$,\newline $e \in E,\ t_e = \text{Signal}$,\newline $\mathit{expr} \in \mathbf{Expr}$
-                           & $\mathit{Fired}(\mathit{calculated}(e),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$                  \\[4pt]
+                           & $\mathit{Happening}(\mathit{calculated}(e),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$                  \\[4pt]
         $\mathit{write}(t,\, e,\, \mathit{expr})$
                            & $t \in T$,\newline $e \in E,\ t_e = \text{Storage}$,\newline $\mathit{expr} \in \mathbf{Expr}$
-                           & $\mathit{Fired}(\mathit{written}(e),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$                  \\[4pt]
+                           & $\mathit{Happening}(\mathit{written}(e),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$                  \\[4pt]
         $\mathit{read}(t,\, e_{\mathit{src}},\, e_{\mathit{dst}})$
                            & $t \in T$,\newline $e_{\mathit{src}} \in E,\ t_{e_{\mathit{src}}} = \text{Storage}$,\newline $e_{\mathit{dst}} \in E,\ t_{e_{\mathit{dst}}} = \text{Signal}$
-                           & $\mathit{Fired}(\mathit{read}(e_{\mathit{src}}),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e_{\mathit{dst}},\, t') = \mathit{Val}_\rho(e_{\mathit{src}},\, t)$  \\[4pt]
+                           & $\mathit{Happening}(\mathit{read}(e_{\mathit{src}}),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e_{\mathit{dst}},\, t') = \mathit{Val}_\rho(e_{\mathit{src}},\, t)$  \\[4pt]
         $\mathit{fire}(t,\, e)$
                            & $t \in T$, $e \in E,\ t_e = \text{Event}$
-                           & $\mathit{Fired}(e,\, t)$                                                                                            \\[4pt]
+                           & $\mathit{Happening}(e,\, t)$                                                                                            \\[4pt]
         $\mathit{set\_state}(t,\, e,\, s)$
                            & $t \in T$,\newline $e \in E,\ t_e = \text{State}$,\newline $s \in V$
-                           & $\mathit{Fired}(\mathit{entered}(e),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = s$  \\[4pt]
+                           & $\mathit{Happening}(\mathit{entered}(e),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = s$  \\[4pt]
         $\mathit{transmit}(t,\, e,\, \mathit{expr})$
                            & $t \in T$,\newline $e \in E,\ t_e = \text{Channel}$,\newline $\mathit{expr} \in \mathbf{Expr}$
-                           & $\mathit{Fired}(\mathit{transmitted}(e),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$      \\[4pt]
+                           & $\mathit{Happening}(\mathit{transmitted}(e),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$      \\[4pt]
         $\mathit{receive}(t,\, e_{\mathit{src}},\, e_{\mathit{dst}})$
                            & $t \in T$,\newline $e_{\mathit{src}} \in E,\ t_{e_{\mathit{src}}} = \text{Channel}$,\newline $e_{\mathit{dst}} \in E,\ t_{e_{\mathit{dst}}} = \text{Signal}$
-                           & $\mathit{Fired}(\mathit{received}(e_{\mathit{src}}),\, t)$ \newline $\mathit{Val}_\rho(e_{\mathit{dst}},\, t) = \mathit{Val}_\rho(e_{\mathit{src}},\, t)$  \\
+                           & $\mathit{Happening}(\mathit{received}(e_{\mathit{src}}),\, t)$ \newline $\mathit{Val}_\rho(e_{\mathit{dst}},\, t) = \mathit{Val}_\rho(e_{\mathit{src}},\, t)$  \\
         \bottomrule
     \end{tabularx}
     \medskip
@@ -674,12 +674,12 @@ Together, $\mathit{setup}$ and $\mathit{stimuli}$ define a trace $\rho$. The cov
 \textbf{Constraint:}
 \begin{align*}
     \mathit{Always}\Bigl(\;
-        \mathit{HasFired}_\rho(\mathit{enter\_emergency},\, \mathit{Now})
+        \mathit{HasHappened}_\rho(\mathit{enter\_emergency},\, \mathit{Now})
         \Rightarrow \mathit{Val}_\rho(\mathit{counter\_1},\, \mathit{Now}) = \mathit{Val}_\rho(\mathit{counter\_1},\, \mathit{Prev}(\mathit{Now})) + 3
     \;\Bigr)
 \end{align*}
 
-The antecedent holds at time $t$ iff $\mathit{enter\_emergency}$ has fired at least once up to $t$.
+The antecedent holds at time $t$ iff $\mathit{enter\_emergency}$ has happened at least once up to $t$.
 The consequent requires $\mathit{counter\_1}$ to equal its previous value plus 3 at every such time step.
 
 \subsection{Req 01 -- Arithmetic recurrence with condition}
@@ -747,8 +747,8 @@ The consequent requires $\mathit{counter\_1}$ to equal its previous value plus 3
 \textbf{Constraint:}
 \[
     \mathit{Sequence}\Bigl(
-        \mathit{Fired}(\mathit{read}(\mathit{calibration\_const}),\, \mathit{Now}),\;
-        \mathit{Fired}(\mathit{written}(\mathit{DTSCON}),\, \mathit{Now})
+        \mathit{Happening}(\mathit{read}(\mathit{calibration\_const}),\, \mathit{Now}),\;
+        \mathit{Happening}(\mathit{written}(\mathit{DTSCON}),\, \mathit{Now})
     \Bigr)
 \]
 
@@ -810,11 +810,11 @@ Since there are $\binom{4}{3} = 4$ such subsets, the constraint is:
 \begin{align*}
     \mathit{Always}\Bigl(
         &\mathit{AllOf}\bigl(\{\,
-            \mathit{Fired}(\mathit{read}(A),\, \mathit{Now}),\;
-            \mathit{Fired}(\mathit{read}(B),\, \mathit{Now}),\\
+            \mathit{Happening}(\mathit{read}(A),\, \mathit{Now}),\;
+            \mathit{Happening}(\mathit{read}(B),\, \mathit{Now}),\\
         &\quad
-            \mathit{Fired}(\mathit{read}(C),\, \mathit{Now}),\;
-            \mathit{Fired}(\mathit{read}(D),\, \mathit{Now})
+            \mathit{Happening}(\mathit{read}(C),\, \mathit{Now}),\;
+            \mathit{Happening}(\mathit{read}(D),\, \mathit{Now})
         \,\}\bigr) \\
         &\Rightarrow \mathit{Not}\Bigl(\mathit{AnyOf}\bigl(\{\\
         &\qquad \mathit{AllOf}(\{\mathit{big}(A),\, \mathit{big}(B),\, \mathit{big}(C)\}),\\
