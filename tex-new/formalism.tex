@@ -220,12 +220,8 @@ We write $\Sigma^T$ for the set of all traces, i.e.\ the set of all functions fr
 
 \section{Expressions and predicates}
 
-All expression functions defined in this section evaluate to a value in $V$.
+All expression functions defined in this section evaluate to some value $v \in V$.
 We write $\mathbf{Expr}$ for the infinite set of all expressions.
-Functions in \S\ref{subsec:time} (\nameref{subsec:time}) depend only on time points or intervals.
-Functions in \S\ref{subsec:trace} (\nameref{subsec:trace}) additionally take a trace $\rho \in \Sigma^T$
-and produce values that reflect the state of the system over time.
-
 \subsection{Expressions}\label{subsec:expressions}
 
 \subsubsection{Constants and arithmetic}\label{subsec:constants}
@@ -238,7 +234,7 @@ The standard arithmetic operators $+$, $-$, $\times$, $/$ are defined on numeric
 
 \subsubsection{Time functions}\label{subsec:time}
 
-The following functions operate on time points and intervals only; they do not depend on a trace.
+The following functions depend only on time points or intervals; they do not depend on a trace.
 
 \begin{definition}[Current time]\label{def:now}
     $\mathit{Now} \in T$ returns the ambient time point $t$:
@@ -333,7 +329,7 @@ These expressions return static properties of entities and do not depend on the 
 
 \subsubsection{Trace functions}\label{subsec:trace}
 
-Expressions are terms that evaluate to a value in $V$ given a trace $\rho$.
+The following functions additionally take a trace $\rho \in \Sigma^T$ and produce values that reflect the state of the system over time.
 
 \begin{definition}[]\label{def:expr_val}
     For a trace $\rho \in \Sigma^T$, the partial function $\mathit{Val}_\rho: E \times T \rightharpoonup V$ denotes the value of entity $e \in E$ at time $t \in T$:
