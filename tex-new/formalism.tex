@@ -129,11 +129,16 @@ We say that $T$ is an infinite totally ordered set; the time set can have \texti
 \end{definition}
 
 \begin{definition}[Values]\label{def:values}
-    The \emph{values set} $V$ is the union of the following sets:
+    Let
     \[
-        V = \mathbb{B} \cup \mathbb{R} \cup T \cup \mathcal{I}
+        V_{\text{base}} = \mathbb{B} \cup \mathbb{R} \cup T \cup \mathcal{I}
     \]
-    where $\mathbb{B} = \{\mathit{true}, \mathit{false}\}$ is the set of booleans, $\mathbb{R}$ is the set of real numbers, $T$ is the time set, and $\mathcal{I}$ is the set of intervals.
+    denote the set of \emph{base values}, where $\mathbb{B} = \{\mathit{true}, \mathit{false}\}$ is the set of booleans, $\mathbb{R}$ is the set of real numbers, $T$ is the time set, and $\mathcal{I}$ is the set of intervals.
+    The \emph{values set} $V$ is:
+    \[
+        V = V_{\text{base}} \cup \mathcal{P}_{\text{fin}}(V_{\text{base}})
+    \]
+    where $\mathcal{P}_{\text{fin}}(V_{\text{base}})$ is the set of all finite subsets of $V_{\text{base}}$ (the \emph{set values}). Set values are flat: sets cannot contain other sets.
 \end{definition}
 
 \section{Entities and entity types}
@@ -142,7 +147,7 @@ An entity type is an item belonging to a set of entity types. There is a number 
 
 \begin{definition}[Entity type set]\label{def:entity_type_set}
     \[
-        T_\text{E} = \{ \text{Signal}, \text{Storage}, \text{Event}, \text{Channel}, \text{State}, \text{Value}, \text{Abstract}\}
+        T_\text{E} = \{ \text{Signal}, \text{Storage}, \text{Event}, \text{Channel}, \text{State}, \text{Value}, \text{Abstract}, \text{Set}\}
     \]
 \end{definition}
 
@@ -159,7 +164,8 @@ Each entity type has a set of \emph{predefined events} — events that fire auto
         PE(\text{Signal}) = \{\, \mathit{calculated} \,\} \qquad
         PE(\text{Storage}) = \{\, \mathit{written},\, \mathit{read} \,\} \\
         PE(\text{State}) = \{\, \mathit{entered} \,\} \qquad
-        PE(\text{Channel}) = \{\, \mathit{transmitted},\, \mathit{received} \,\}
+        PE(\text{Channel}) = \{\, \mathit{transmitted},\, \mathit{received} \,\} \\
+        PE(\text{Set}) = \{\, \mathit{inserted},\, \mathit{removed},\, \mathit{cleared} \,\}
     \end{gather*}
     All other entity types have no predefined events.
 \end{definition}
@@ -206,6 +212,7 @@ Formally, entity is defined as a four-item tuple.
     A valuation is a partial function $\sigma : E \rightharpoonup V$ assigning a value to a subset of entities at each time point\footnote{For instance a register entity can have its value undefined at time points preceeding a write to this register.}; $\sigma(e)$ is undefined when the entity has no defined value at that time point.
     For entities of type \texttt{Event}, $\sigma(e)$ is always defined and $\sigma(e) \in \{\mathit{true}, \mathit{false}\}$,
     where $\sigma(e) = \mathit{true}$ iff the event occurs at that time point.
+    For entities of type \texttt{Set}, $\sigma(e)$, when defined, is a finite subset of $V_{\text{base}}$, i.e.\ $\sigma(e) \in \mathcal{P}_{\text{fin}}(V_{\text{base}})$.
 \end{definition}
 
 We write $\Sigma$ for the infinite set of all valuations.
@@ -343,6 +350,16 @@ The following functions additionally take a trace $\rho \in \Sigma^T$ and produc
     The function is partial: $\mathit{Val}_\rho(e,\, t)$ is undefined when $e \notin \mathrm{dom}(\rho(t))$.
 \end{definition}
 
+\begin{definition}[Value before time point]\label{def:val_before}
+    For a trace $\rho \in \Sigma^T$, the partial function $\mathit{ValBefore}_\rho : E \times T \rightharpoonup V$ returns the value of $e$ at the time of the previous operation firing on $e$ strictly before $t$:
+    \[
+        \mathit{ValBefore}_\rho(e,\, t) \;=\; \mathit{Val}_\rho(e,\, t_{\mathit{prev-fire}})
+    \]
+    where $t_{\mathit{prev-fire}} = \max\{\, t' \in T \mid t' < t \;\land\; \text{some operation fires on } e \text{ at } t' \,\}$.
+    The function is partial: it is undefined when no operation has fired on $e$ before $t$.
+    By the operation effect predicates, $\mathit{Val}_\rho(e,\, \cdot)$ is constant on $[t_{\mathit{prev-fire}},\, t)$, so this is well-defined for both discrete and continuous time flavours.
+\end{definition}
+
 \begin{definition}[Event occurrence count]\label{def:evt_occ_count}
     For a trace $\rho \in \Sigma^T$ and an entity $ev \in E$ of type \texttt{Event},
     $\mathit{EvtOccCount}_\rho : E \times \mathcal{I} \rightarrow \mathbb{N}$ returns the number of occurrences of $ev$ within an interval $i \in \mathcal{I}$:
@@ -391,6 +408,17 @@ The following functions additionally take a trace $\rho \in \Sigma^T$ and produc
     \]
 \end{definition}
 
+\subsubsection{Set functions}\label{subsec:set_fns}
+
+These functions operate on set values and do not depend on a trace.
+
+\begin{definition}[Set size]\label{def:size}
+    $\mathit{Size} : \mathcal{P}_{\text{fin}}(V_{\text{base}}) \rightarrow \mathbb{N}$ returns the cardinality of a set:
+    \[
+        \mathit{Size}(s) \;=\; |s|
+    \]
+\end{definition}
+
 \subsection{Predicates}\label{subsec:predicates}
 
 A predicate is a function that evaluates to a value in $\mathbb{B}$.
@@ -407,6 +435,13 @@ We write $\mathbf{Pred}$ for the infinite set of all predicates.
     \]
     The operators $<, \leq, >, \geq$ require $a, b$ to be from an ordered domain.
     Since $\Delta \subseteq \mathbb{R}$, durations are an ordered domain and duration comparison is a valid instance of $\mathit{Cmp}$.
+\end{definition}
+
+\begin{definition}[Set membership]\label{def:pred_contains}
+    For a base value $v \in V_{\text{base}}$ and a set value $s \in \mathcal{P}_{\text{fin}}(V_{\text{base}})$:
+    \[
+        \mathit{Contains}(v,\, s) \;\Leftrightarrow\; v \in s
+    \]
 \end{definition}
 
 \begin{definition}[Negation]\label{def:pred_not}
@@ -578,7 +613,16 @@ In effect predicates, $t_{\mathit{next}}$ denotes the next time the same operati
                        & $\mathit{Happening}(\mathit{transmitted}(e),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$      \\[4pt]
     $\mathit{receive}(t,\, e_{\mathit{src}},\, e_{\mathit{dst}})$
                        & $t \in T$,\newline $e_{\mathit{src}} \in E,\ t_{e_{\mathit{src}}} = \text{Channel}$,\newline $e_{\mathit{dst}} \in E,\ t_{e_{\mathit{dst}}} = \text{Signal}$
-                       & $\mathit{Happening}(\mathit{received}(e_{\mathit{src}}),\, t)$ \newline $\mathit{Val}_\rho(e_{\mathit{dst}},\, t) = \mathit{Val}_\rho(e_{\mathit{src}},\, t)$  \\
+                       & $\mathit{Happening}(\mathit{received}(e_{\mathit{src}}),\, t)$ \newline $\mathit{Val}_\rho(e_{\mathit{dst}},\, t) = \mathit{Val}_\rho(e_{\mathit{src}},\, t)$  \\[4pt]
+    $\mathit{insert}(t,\, e,\, v)$
+                       & $t \in T$,\newline $e \in E,\ t_e = \text{Set}$,\newline $v \in V_{\text{base}}$
+                       & $\mathit{Happening}(\mathit{inserted}(e),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{ValBefore}_\rho(e,\, t) \cup \{v\}$  \\[4pt]
+    $\mathit{remove}(t,\, e,\, v)$
+                       & $t \in T$,\newline $e \in E,\ t_e = \text{Set}$,\newline $v \in V_{\text{base}}$
+                       & $\mathit{Happening}(\mathit{removed}(e),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{ValBefore}_\rho(e,\, t) \setminus \{v\}$  \\[4pt]
+    $\mathit{clear}(t,\, e)$
+                       & $t \in T$,\newline $e \in E,\ t_e = \text{Set}$
+                       & $\mathit{Happening}(\mathit{cleared}(e),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \emptyset$  \\
     \bottomrule
 \end{tabularx}
 \medskip
