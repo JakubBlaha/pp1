@@ -1,3 +1,19 @@
+# 20 May 2026
+
+## Changes
+
+- Added `Set` entity type to $T_E$, with predefined events $PE(\text{Set}) = \{\mathit{inserted}, \mathit{removed}, \mathit{cleared}\}$.
+- Added set operations `insert(t, e, v)`, `remove(t, e, v)`, `clear(t, e)` to the operations table.
+- Added `ValBefore_\rho(e, t)` trace function, defined as the left limit $\lim_{t' \to t^-} \mathit{Val}_\rho(e, t')$, used in set operation effect predicates.
+- Added `Size(s)` function and `Filter(s, P)` expression in a new Set functions subsection.
+- Added `Contains(v, s)` membership predicate.
+- Introduced $\mathit{ID}_E$ as a primitive set of unique abstract tokens (entity identifiers).
+- Split the Values definition into three layers: $V_{\text{base}} = \mathbb{B} \cup \mathbb{R} \cup T \cup \mathcal{I}$ (defined in §2); $V_{\text{nonset}} = V_{\text{base}} \cup E$ and $V = V_{\text{nonset}} \cup \mathcal{P}_{\text{fin}}(V_{\text{nonset}})$ (defined in §3 after entities). Set values are flat: elements are drawn from $V_{\text{nonset}}$ only.
+- Entity tuple changed from $(n_e, t_e, \mu_e, d_e)$ to $(id_e, t_e, \mu_e)$: the name and description fields are removed; the identifier field $id_e \in \mathit{ID}_E$ is added with a uniqueness constraint across $E$.
+- Narrowed $\mu_e$ codomain from $V$ to $V_{\text{base}}$: modifiers are static entity properties and do not require the full value set.
+- Entities are now elements of $V$ (via $V_{\text{nonset}}$), enabling sets of entities as first-class values.
+- Updated `insert`/`remove` argument type, `Size`, `Contains`, `Filter`, and the Set valuation constraint to use $V_{\text{nonset}}$.
+
 # 10 May 2026
 
 ## Changes

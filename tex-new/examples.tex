@@ -143,27 +143,21 @@ The consequent requires $\mathit{counter\_1}$ to equal its previous value plus 3
 
 \textbf{Constraint:}
 
-Let $\mathit{big}(e) \;\triangleq\; \mathit{Val}_\rho(e,\, \mathit{Now}) > 10$ for $e \in \{A, B, C, D\}$.
-``At most 2 of the four registers exceed 10'' is equivalent to ``no 3-element subset all exceed 10'', i.e.\ $\neg(\text{at least 3 exceed 10})$.
-Since there are $\binom{4}{3} = 4$ such subsets, the constraint is:
+Let $\mathit{regs} = \{A,\, B,\, C,\, D\} \in \mathcal{P}_{\text{fin}}(V_{\text{nonset}})$ be the set of register entities.
+Both the antecedent and the consequent quantify over $\mathit{regs}$:
 
 \begin{align*}
     \mathit{Always}\Bigl(
-        &\mathit{AllOf}\bigl(\{\,
-            \mathit{Happening}(\mathit{read}(A),\, \mathit{Now}),\;
-            \mathit{Happening}(\mathit{read}(B),\, \mathit{Now}),\\
-        &\quad
-            \mathit{Happening}(\mathit{read}(C),\, \mathit{Now}),\;
-            \mathit{Happening}(\mathit{read}(D),\, \mathit{Now})
-        \,\}\bigr) \\
-        &\Rightarrow \mathit{Not}\Bigl(\mathit{AnyOf}\bigl(\{\\
-        &\qquad \mathit{AllOf}(\{\mathit{big}(A),\, \mathit{big}(B),\, \mathit{big}(C)\}),\\
-        &\qquad \mathit{AllOf}(\{\mathit{big}(A),\, \mathit{big}(B),\, \mathit{big}(D)\}),\\
-        &\qquad \mathit{AllOf}(\{\mathit{big}(A),\, \mathit{big}(C),\, \mathit{big}(D)\}),\\
-        &\qquad \mathit{AllOf}(\{\mathit{big}(B),\, \mathit{big}(C),\, \mathit{big}(D)\})\\
-        &\}\bigr)\Bigr)
+        &\mathit{ForAll}\bigl(\mathit{regs},\;
+            \lambda e.\; \mathit{Happening}(\mathit{read}(e),\, \mathit{Now})\bigr) \\
+        &\Rightarrow \mathit{Cmp}\Bigl(
+            \mathit{Size}\bigl(
+                \mathit{Filter}\bigl(\mathit{regs},\;
+                    \lambda e.\; \mathit{Val}_\rho(e,\, \mathit{Now}) > 10\bigr)
+            \bigr),\; \leq,\; 2
+        \Bigr)
     \Bigr)
 \end{align*}
 
 The antecedent holds at time $t$ iff all four registers are read simultaneously.
-The consequent rules out every possible combination of three registers all exceeding 10, which is necessary and sufficient for at most two values to be greater than 10.
+The consequent builds the set of registers whose value exceeds 10 and asserts its cardinality is at most 2.

@@ -6,14 +6,7 @@
 - entita muze mit nedefinovanou hodnotu -- v nejakem case entita nemusi existovat
     - mela by se undefined hodnota propagovat?
     - mohli bychom pridat predikat isUndefined
-- mnozina entit neni definovana, konecna nebo nekonecna -- konecna
-- fire prejmenovat na happened
-- prepsat formalne t_next
-- u mnozin definovat, jestli jsou konecne a neprazdne
-- updatnout expressions (mozna ode me)
 - definice operatoru je confusing -- to, co mi vygeneroval claude a ani jsem to poradne nezkontroloval
-- diskretizace spojiteho casu pomoci time elementu -- moznost realtime definice prev a next, pocita se s elementem
-- projit cely dokument a verifikovat, ze vsechny pouzite symboly jsou pred pouzitim definovane
 - fix predefined event kinds
 
 
