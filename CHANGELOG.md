@@ -1,3 +1,17 @@
+# 20 May 2026 (session 2)
+
+## Changes
+
+- Removed the `PE` (predefined events function) and the `EventType` concept entirely — predefined events are now expressed through the modifier system instead.
+- Added `EventTypeLabel` as a new primitive set of abstract symbols: $\{\mathit{generic}, \mathit{calculated}, \mathit{written}, \mathit{read}, \mathit{entered}, \mathit{transmitted}, \mathit{received}, \mathit{inserted}, \mathit{removed}, \mathit{cleared}\}$.
+- Introduced `ModVal = V_base ∪ ID_E ∪ EventTypeLabel` as the codomain of the modifier assignment function $\mu_e$, replacing the previous `V_base`. This allows modifiers to carry entity identifiers and event type labels.
+- Extended the $M_E$ modifier table with two new keys for `Event` entities: `target : ID_E` (the entity this event is associated with) and `kind : EventTypeLabel` (the predefined event type). Every `Event` entity is expected to carry both modifiers — user-declared events link to an `EventTrigger` with `kind = generic`, predefined events link to their parent entity with the appropriate kind. A uniqueness note states that at most one `Event` entity with a given `(target, kind)` pair should exist in $E$.
+- Added `EventTrigger` to $T_E$ for user-declared named events. Users now declare `EventTrigger` entities instead of plain `Event` entities when they want to express a named firable event.
+- Updated `fire(t, e)` to target `EventTrigger` entities (previously `Event`); its effect is now `EvtPred(e, generic, t)`, making the operations table fully uniform.
+- Introduced `EvtPred(e, ek, t)` as a shorthand local to the operations section, defined as $\forall\, ev \in E : (t_{ev} = \text{Event} \land \mu_{ev}(\mathit{belongs\_to}) = id_e \land \mu_{ev}(\mathit{type}) = ek) \Rightarrow \mathit{Val}_\rho(ev, t) = \mathit{true}$. A note clarifies that this causes $\mathit{Happening}(ev, t)$ to hold. All operation effect entries now use `EvtPred` instead of the old `Happening(ek(e), t)` form.
+- `Happening(ev, t)` remains a single clean definition in the predicates section ($\Leftrightarrow \mathit{Val}_\rho(ev, t) = \mathit{true}$), used directly in requirement constraints with named `Event` entities.
+- Updated examples: predefined-event usages now declare named `Event` entities with `target` and `type` modifiers and reference them via `Happening` directly; `EventTrigger` entities replace plain `Event` entities for user-declared events; companion `Event` entities with `kind = generic` are declared alongside each `EventTrigger`.
+
 # 20 May 2026
 
 ## Changes

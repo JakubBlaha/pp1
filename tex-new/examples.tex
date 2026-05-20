@@ -7,14 +7,15 @@
 \medskip
 \textbf{Entities:}
 \begin{itemize}
-    \item $\mathit{enter\_emergency} \in E,\ t_e = \text{Event}$
+    \item $\mathit{enter\_emergency} \in E,\ t_e = \text{EventTrigger}$
+    \item $\mathit{ev\_enter\_emergency} \in E,\ t_e = \text{Event},\ \mu_e = \{\mathit{target} \mapsto id_{\mathit{enter\_emergency}},\ \mathit{type} \mapsto \mathit{generic}\}$
     \item $\mathit{counter\_1} \in E,\ t_e = \text{Signal}$
 \end{itemize}
 
 \textbf{Constraint:}
 \begin{align*}
     \mathit{Always}\Bigl(\;
-        \mathit{HasHappened}_\rho(\mathit{enter\_emergency},\, \mathit{Now})
+        \mathit{HasHappened}_\rho(\mathit{ev\_enter\_emergency},\, \mathit{Now})
         \Rightarrow \mathit{Val}_\rho(\mathit{counter\_1},\, \mathit{Now}) = \mathit{Val}_\rho(\mathit{counter\_1},\, \mathit{Prev}(\mathit{Now})) + 3
     \;\Bigr)
 \end{align*}
@@ -80,6 +81,8 @@ The consequent requires $\mathit{counter\_1}$ to equal its previous value plus 3
 \begin{itemize}
     \item $\mathit{calibration\_const} \in E,\ t_e = \text{Storage},\ \mu_e = \{\mathit{address} \mapsto \texttt{0xAA000018}\}$
     \item $\mathit{DTSCON} \in E,\ t_e = \text{Storage},\ \mu_e = \{\mathit{register} \mapsto \top\}$
+    \item $\mathit{ev\_read\_cc} \in E,\ t_e = \text{Event},\ \mu_e = \{\mathit{target} \mapsto id_{\mathit{calibration\_const}},\ \mathit{type} \mapsto \mathit{read}\}$
+    \item $\mathit{ev\_written\_dtscon} \in E,\ t_e = \text{Event},\ \mu_e = \{\mathit{target} \mapsto id_{\mathit{DTSCON}},\ \mathit{type} \mapsto \mathit{written}\}$
 \end{itemize}
 
 \textbf{Flavour:} Discrete.
@@ -87,8 +90,8 @@ The consequent requires $\mathit{counter\_1}$ to equal its previous value plus 3
 \textbf{Constraint:}
 \[
     \mathit{Sequence}\Bigl(
-        \mathit{Happening}(\mathit{read}(\mathit{calibration\_const}),\, \mathit{Now}),\;
-        \mathit{Happening}(\mathit{written}(\mathit{DTSCON}),\, \mathit{Now})
+        \mathit{Happening}(\mathit{ev\_read\_cc},\, \mathit{Now}),\;
+        \mathit{Happening}(\mathit{ev\_written\_dtscon},\, \mathit{Now})
     \Bigr)
 \]
 
@@ -137,6 +140,10 @@ The consequent requires $\mathit{counter\_1}$ to equal its previous value plus 3
     \item $B \in E,\ t_e = \text{Storage},\ \mu_e = \{\mathit{register} \mapsto \top\}$
     \item $C \in E,\ t_e = \text{Storage},\ \mu_e = \{\mathit{register} \mapsto \top\}$
     \item $D \in E,\ t_e = \text{Storage},\ \mu_e = \{\mathit{register} \mapsto \top\}$
+    \item $\mathit{ev\_read\_A} \in E,\ t_e = \text{Event},\ \mu_e = \{\mathit{target} \mapsto id_A,\ \mathit{type} \mapsto \mathit{read}\}$
+    \item $\mathit{ev\_read\_B} \in E,\ t_e = \text{Event},\ \mu_e = \{\mathit{target} \mapsto id_B,\ \mathit{type} \mapsto \mathit{read}\}$
+    \item $\mathit{ev\_read\_C} \in E,\ t_e = \text{Event},\ \mu_e = \{\mathit{target} \mapsto id_C,\ \mathit{type} \mapsto \mathit{read}\}$
+    \item $\mathit{ev\_read\_D} \in E,\ t_e = \text{Event},\ \mu_e = \{\mathit{target} \mapsto id_D,\ \mathit{type} \mapsto \mathit{read}\}$
 \end{itemize}
 
 \textbf{Flavour:} Discrete.
@@ -149,7 +156,7 @@ Both the antecedent and the consequent quantify over $\mathit{regs}$:
 \begin{align*}
     \mathit{Always}\Bigl(
         &\mathit{ForAll}\bigl(\mathit{regs},\;
-            \lambda e.\; \mathit{Happening}(\mathit{read}(e),\, \mathit{Now})\bigr) \\
+            \lambda e.\; \mathit{Happening}(e,\, \mathit{read},\, \mathit{Now})\bigr) \\
         &\Rightarrow \mathit{Cmp}\Bigl(
             \mathit{Size}\bigl(
                 \mathit{Filter}\bigl(\mathit{regs},\;

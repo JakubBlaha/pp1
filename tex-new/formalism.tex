@@ -23,6 +23,7 @@ These primitive sets serve as the base that the rest of the formalism builds on.
     \item $\mathit{ID}_E$ -- the set of entity identifiers.
     \item $V_{\text{base}}$ -- the base values set: booleans, reals, time points, and intervals.
     \item $V_{\text{nonset}}$, $V$ -- defined in Section~\ref{sec:entities} once entities are available; $V_{\text{nonset}}$ is the union of base values and entities; $V$ additionally includes finite sets whose elements are drawn from $V_{\text{nonset}}$.
+    \item $\mathit{EventTypeLabel}$ -- the set of event type labels; defined below.
 \end{itemize}
 
 \begin{definition}[Discrete time set]\label{def:time_discrete}
@@ -71,50 +72,66 @@ We say that $T$ is an infinite totally ordered set; the time set can have \texti
     where $\mathbb{B} = \{\mathit{true}, \mathit{false}\}$ is the set of booleans, $\mathbb{R}$ is the set of real numbers, $T$ is the time set, and $\mathcal{I}$ is the set of intervals.
 \end{definition}
 
+\begin{definition}[Event type label set]\label{def:event_type_label_set}
+    The \emph{event type label set} $\mathit{EventTypeLabel}$ is a finite set of abstract symbols:
+    \begin{gather*}
+        \mathit{EventTypeLabel} = \{\,
+            \mathit{generic},\;
+            \mathit{calculated},\;
+            \mathit{written},\;
+            \mathit{read},\;
+            \mathit{entered},\;
+            \mathit{transmitted},\; \\
+            \mathit{received},\;
+            \mathit{inserted},\;
+            \mathit{removed},\;
+            \mathit{cleared}
+        \,\}
+    \end{gather*}
+\end{definition}
+
 \section{Entities and entity types}\label{sec:entities}
 
 An entity type is an item belonging to a set of entity types. There is a number of defined entity types and this set is open to extension.
 
 \begin{definition}[Entity type set]\label{def:entity_type_set}
     \[
-        T_\text{E} = \{ \text{Signal}, \text{Storage}, \text{Event}, \text{Channel}, \text{State}, \text{Value}, \text{Abstract}, \text{Set}\}
+        T_\text{E} = \{ \text{Signal}, \text{Storage}, \text{Event}, \text{EventTrigger}, \text{Channel}, \text{State}, \text{Value}, \text{Abstract}, \text{Set}\}
     \]
 \end{definition}
 
-Each entity type has a set of \emph{predefined events} — events that fire automatically as a result of operations on the entity, without requiring explicit user declaration.
-
-
-% TODO fix this, are we using this?
-
-\begin{definition}[Predefined events function]\label{def:predefined_events}
-    $PE : T_E \rightarrow \mathcal{P}(\mathit{EventKind})$ maps each entity type to its set of predefined event kinds.
-    A predefined event instance for entity $e$ is written $ek(e)$, where $ek \in PE(t_e)$.
-    The predefined event kinds are:
-    \begin{gather*}
-        PE(\text{Signal}) = \{\, \mathit{calculated} \,\} \qquad
-        PE(\text{Storage}) = \{\, \mathit{written},\, \mathit{read} \,\} \\
-        PE(\text{State}) = \{\, \mathit{entered} \,\} \qquad
-        PE(\text{Channel}) = \{\, \mathit{transmitted},\, \mathit{received} \,\} \\
-        PE(\text{Set}) = \{\, \mathit{inserted},\, \mathit{removed},\, \mathit{cleared} \,\}
-    \end{gather*}
-    All other entity types have no predefined events.
-\end{definition}
 
 Entity type modifiers are properties which can be attached to an entity of a particular type.
-A modifier is either a \emph{flag}, whose presence alone carries meaning, or a \emph{parameterised modifier}, which additionally carries a value in $V_{\text{base}}$.
+A modifier is either a \emph{flag}, whose presence alone carries meaning, or a \emph{parameterised modifier}, which additionally carries a value in $\mathit{ModVal}$.
+
+\begin{definition}[Modifier value set]\label{def:mod_val}
+    The \emph{modifier value set} is:
+    \[
+        \mathit{ModVal} = V_{\text{base}} \cup \mathit{ID}_E \cup \mathit{EventTypeLabel}
+    \]
+\end{definition}
 
 Each entity type is compatible with only a subset of the modifier keys.
 Therefore we define the \textit{entity type modifiers function}.
 
 
-% TODO define modifierKeys set
-
 \begin{definition}[Entity type modifiers function]\label{def:entity_type_modifiers_fn}
-    \[
-        M_\text{E}: T_E \rightarrow \mathcal{P}(\mathit{ModKey})
-    \]
+    $M_\text{E}: T_E \rightarrow \mathcal{P}(\mathit{ModKey})$ maps each entity type to its set of permitted modifier keys,
+    where $\mathit{ModKey}$ is a finite nonempty set of modifier keys.
+    The permitted modifier keys and their expected value types are:
+    \begin{center}
+    \begin{tabular}{lll}
+        \toprule
+        \textbf{Entity type} & \textbf{Modifier key} & \textbf{Value type} \\
+        \midrule
+        \text{Event} & $\mathit{target}$ & $\mathit{ID}_E$ \\
+        \text{Event} & $\mathit{type}$        & $\mathit{EventTypeLabel}$ \\
+        \bottomrule
+    \end{tabular}
+    \end{center}
+    Every \texttt{Event} entity is expected to carry both modifiers: user-declared events set $\mathit{target}$ to the identifier of their \texttt{EventTrigger} and $\mathit{type}$ to $\mathit{generic}$; predefined events set $\mathit{target}$ to their parent entity and $\mathit{type}$ to the appropriate event type.
 
-    , where $\mathit{ModKey}$ is a finite nonempty the set of modifier keys and $\mathcal{P}(\mathit{ModKey})$ is the power set of $\mathit{ModKey}$.
+    \textit{Note:} At most one \texttt{Event} entity with a given $(\mathit{target}, \mathit{type})$ pair should exist in $E$ for a given requirement.
 \end{definition}
 
 An entity is something that is referenced in a requirement and corresponding test cases.
@@ -129,7 +146,7 @@ Formally, an entity is defined as a three-item tuple.
     \begin{itemize}
         \item $id_e$ is the unique identifier of the entity; $id_e \in \mathit{ID}_E$
         \item $t_e$ is the type of the entity; $t_e \in T_E$
-        \item $\mu_e$ is the modifier assignment function of the entity; $\mu_e : \mathit{ModKey} \rightharpoonup V_{\text{base}}$, $\mathrm{dom}(\mu_e) \subseteq M_E(t_e)$ \footnote{$\mathrm{dom}(\mu_e)$ is a subset of the set of modifier keys compatible with the entity type $t_e$. It is not required that a value is defined for each modifier key compatible with $t_e$.}
+        \item $\mu_e$ is the modifier assignment function of the entity; $\mu_e : \mathit{ModKey} \rightharpoonup \mathit{ModVal}$, $\mathrm{dom}(\mu_e) \subseteq M_E(t_e)$ \footnote{$\mathrm{dom}(\mu_e)$ is a subset of the set of modifier keys compatible with the entity type $t_e$. It is not required that a value is defined for each modifier key compatible with $t_e$.}
     \end{itemize}
     No two entities in $E$ share the same identifier: $\forall e, e' \in E: e \neq e' \Rightarrow id_e \neq id_{e'}$.
     We write $E$ for the set of all entities. The set $E$ is finite and nonempty.\footnote{The set $E$ is finite in the scope of a single requirement.}
@@ -525,7 +542,7 @@ The operation is applied to some entity, which means that the argument list of e
     \[
         O_T : T_E \times \mathcal{P}(M) \rightarrow \mathcal{P}(O)
     \]
-    maps each entity type and set of modifiers to its applicable operations.\footnote{It holds that $O = \bigcup_{\tau \in T_E,\, \mu \subseteq M} O_T(\tau,\, \mu)$.}
+    maps each entity type and set of modifiers to its applicable operations.
 \end{definition}
 
 The concrete mapping, including argument types and effects, is as follows.
@@ -542,7 +559,13 @@ In effect predicates, $t_{\mathit{next}}$ denotes the next time the same operati
 
 \todo{This is wrong, because there can be multiple operation that modify the entity value.}
 
-% TODO: define the event names in the effect predicates.
+In the effect column, $\mathit{EvtPred}(e,\, ek,\, t)$ is used as shorthand for:
+\[
+    \forall\, ev \in E :\;
+    \bigl(t_{ev} = \text{Event} \;\land\; \mu_{ev}(\mathit{target}) = id_e \;\land\; \mu_{ev}(\mathit{type}) = ek\bigr)
+    \;\Rightarrow\; \mathit{Val}_\rho(ev,\, t) = \mathit{true}
+\]
+i.e.\ every \texttt{Event} entity declared with the matching $\mathit{target}$ and $\mathit{type}$ modifiers has its value set to $\mathit{true}$ at $t$, which by definition causes $\mathit{Happening}(ev,\, t)$ to hold.
 
 \medskip
 \renewcommand{\arraystretch}{2}
@@ -552,34 +575,34 @@ In effect predicates, $t_{\mathit{next}}$ denotes the next time the same operati
     \midrule
     $\mathit{calculate}(t,\, e,\, \mathit{expr})$
                        & $t \in T$,\newline $e \in E,\ t_e = \text{Signal}$,\newline $\mathit{expr} \in \mathbf{Expr}$
-                       & $\mathit{Happening}(\mathit{calculated}(e),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$                  \\[4pt]
+                       & $\mathit{EvtPred}(e,\, \mathit{calculated},\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$                  \\[4pt]
     $\mathit{write}(t,\, e,\, \mathit{expr})$
                        & $t \in T$,\newline $e \in E,\ t_e = \text{Storage}$,\newline $\mathit{expr} \in \mathbf{Expr}$
-                       & $\mathit{Happening}(\mathit{written}(e),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$                  \\[4pt]
+                       & $\mathit{EvtPred}(e,\, \mathit{written},\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$                  \\[4pt]
     $\mathit{read}(t,\, e_{\mathit{src}},\, e_{\mathit{dst}})$
                        & $t \in T$,\newline $e_{\mathit{src}} \in E,\ t_{e_{\mathit{src}}} = \text{Storage}$,\newline $e_{\mathit{dst}} \in E,\ t_{e_{\mathit{dst}}} = \text{Signal}$
-                       & $\mathit{Happening}(\mathit{read}(e_{\mathit{src}}),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e_{\mathit{dst}},\, t') = \mathit{Val}_\rho(e_{\mathit{src}},\, t)$  \\[4pt]
+                       & $\mathit{EvtPred}(e_{\mathit{src}},\, \mathit{read},\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e_{\mathit{dst}},\, t') = \mathit{Val}_\rho(e_{\mathit{src}},\, t)$  \\[4pt]
     $\mathit{fire}(t,\, e)$
-                       & $t \in T$, $e \in E,\ t_e = \text{Event}$
-                       & $\mathit{Happening}(e,\, t)$                                                                                            \\[4pt]
+                       & $t \in T$, $e \in E,\ t_e = \text{EventTrigger}$
+                       & $\mathit{EvtPred}(e,\, \mathit{generic},\, t)$                                                                          \\[4pt]
     $\mathit{set\_state}(t,\, e,\, s)$
                        & $t \in T$,\newline $e \in E,\ t_e = \text{State}$,\newline $s \in V$
-                       & $\mathit{Happening}(\mathit{entered}(e),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = s$  \\[4pt]
+                       & $\mathit{EvtPred}(e,\, \mathit{entered},\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = s$  \\[4pt]
     $\mathit{transmit}(t,\, e,\, \mathit{expr})$
                        & $t \in T$,\newline $e \in E,\ t_e = \text{Channel}$,\newline $\mathit{expr} \in \mathbf{Expr}$
-                       & $\mathit{Happening}(\mathit{transmitted}(e),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$      \\[4pt]
+                       & $\mathit{EvtPred}(e,\, \mathit{transmitted},\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$      \\[4pt]
     $\mathit{receive}(t,\, e_{\mathit{src}},\, e_{\mathit{dst}})$
                        & $t \in T$,\newline $e_{\mathit{src}} \in E,\ t_{e_{\mathit{src}}} = \text{Channel}$,\newline $e_{\mathit{dst}} \in E,\ t_{e_{\mathit{dst}}} = \text{Signal}$
-                       & $\mathit{Happening}(\mathit{received}(e_{\mathit{src}}),\, t)$ \newline $\mathit{Val}_\rho(e_{\mathit{dst}},\, t) = \mathit{Val}_\rho(e_{\mathit{src}},\, t)$  \\[4pt]
+                       & $\mathit{EvtPred}(e_{\mathit{src}},\, \mathit{received},\, t)$ \newline $\mathit{Val}_\rho(e_{\mathit{dst}},\, t) = \mathit{Val}_\rho(e_{\mathit{src}},\, t)$  \\[4pt]
     $\mathit{insert}(t,\, e,\, v)$
                        & $t \in T$,\newline $e \in E,\ t_e = \text{Set}$,\newline $v \in V_{\text{nonset}}$
-                       & $\mathit{Happening}(\mathit{inserted}(e),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{ValBefore}_\rho(e,\, t) \cup \{v\}$  \\[4pt]
+                       & $\mathit{EvtPred}(e,\, \mathit{inserted},\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{ValBefore}_\rho(e,\, t) \cup \{v\}$  \\[4pt]
     $\mathit{remove}(t,\, e,\, v)$
                        & $t \in T$,\newline $e \in E,\ t_e = \text{Set}$,\newline $v \in V_{\text{nonset}}$
-                       & $\mathit{Happening}(\mathit{removed}(e),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{ValBefore}_\rho(e,\, t) \setminus \{v\}$  \\[4pt]
+                       & $\mathit{EvtPred}(e,\, \mathit{removed},\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{ValBefore}_\rho(e,\, t) \setminus \{v\}$  \\[4pt]
     $\mathit{clear}(t,\, e)$
                        & $t \in T$,\newline $e \in E,\ t_e = \text{Set}$
-                       & $\mathit{Happening}(\mathit{cleared}(e),\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \emptyset$  \\
+                       & $\mathit{EvtPred}(e,\, \mathit{cleared},\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \emptyset$  \\
     \bottomrule
 \end{tabularx}
 \medskip

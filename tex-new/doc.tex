@@ -100,6 +100,7 @@
     \item \textbf{Open question -- Synchronous channel model}: the current model is asynchronous -- \textit{transmit} and \textit{receive} are independent operations that may occur at different times. An alternative synchronous model would have \textit{transmit} directly cause \textit{received} to fire at the same time $t$, making \textit{receive} a consequence of \textit{transmit} rather than a separate operation.
     \item \textbf{Typed sets}
     \item \textbf{Entity lookup by human-readable label.} A function $\mathit{IdByLabel} : \Gamma^* \rightharpoonup \mathit{ID}_E$ could resolve a short human-readable name to an entity identifier. The function is partial (undefined when no entity matches or the label is ambiguous). This is primarily a tooling concern: the formal handle is the entity identifier $id_e$; how a user locates that identifier from natural language is outside the core formalism.
+    \item \textbf{Required modifier keys.} The current $M_E$ function specifies which modifier keys are \emph{permitted} for each entity type, but all modifiers are optional. A future extension could introduce a companion function $M_E^{\text{req}} : T_E \rightarrow \mathcal{P}(\mathit{ModKey})$ specifying which modifier keys are \emph{required}. For example, predefined-event \texttt{Event} entities (those used with $\mathit{EvtPred}$) should always have both $\mathit{target}$ and $\mathit{type}$ defined.
 \end{itemize}
 
 \newpage
