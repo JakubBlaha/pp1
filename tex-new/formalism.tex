@@ -36,10 +36,6 @@
 % 5. COVERAGE IS DERIVED FROM REQUIREMENT STRUCTURE
 %    MC/DC for ALL_OF conditions, per-element for ANY_OF, boundary tests for time
 %    bounds, negative cases for guards, ordering violation tests for strict sequences.
-%
-% KNOWN OPEN ISSUES (see Notes section and todo.md):
-%    - Discrete vs continuous time flavour handling
-%    - Partiality of time functions (Prev at t=0)
 
 % Requirements for this docuement:
 % - it needs to be written in simple wording, dropping any fluff
@@ -699,6 +695,8 @@ A test case exercises a subset of the same entities to produce a concrete trace,
 
 Together, $\mathit{setup}$ and $\mathit{stimuli}$ define a trace $\rho$. The coverage checker determines which predicates in a requirement's constraint are exercised by $\rho$.
 
+\newpage
+
 \section{Design Decisions}
 
 \begin{itemize}
@@ -728,174 +726,8 @@ Together, $\mathit{setup}$ and $\mathit{stimuli}$ define a trace $\rho$. The cov
     \item \textbf{Open question -- Synchronous channel model}: the current model is asynchronous -- \textit{transmit} and \textit{receive} are independent operations that may occur at different times. An alternative synchronous model would have \textit{transmit} directly cause \textit{received} to fire at the same time $t$, making \textit{receive} a consequence of \textit{transmit} rather than a separate operation.
 \end{itemize}
 
-\section{Examples}
+\newpage
 
-\subsection{Custom Counter}
-
-\textbf{Requirement:} After the system enters emergency mode, at each discrete time step the counter \textit{counter\_1} is incremented by 3.
-
-\medskip
-\textbf{Entities:}
-\begin{itemize}
-    \item $\mathit{enter\_emergency} \in E,\ t_e = \text{Event}$
-    \item $\mathit{counter\_1} \in E,\ t_e = \text{Signal}$
-\end{itemize}
-
-\textbf{Constraint:}
-\begin{align*}
-    \mathit{Always}\Bigl(\;
-        \mathit{HasHappened}_\rho(\mathit{enter\_emergency},\, \mathit{Now})
-        \Rightarrow \mathit{Val}_\rho(\mathit{counter\_1},\, \mathit{Now}) = \mathit{Val}_\rho(\mathit{counter\_1},\, \mathit{Prev}(\mathit{Now})) + 3
-    \;\Bigr)
-\end{align*}
-
-The antecedent holds at time $t$ iff $\mathit{enter\_emergency}$ has happened at least once up to $t$.
-The consequent requires $\mathit{counter\_1}$ to equal its previous value plus 3 at every such time step.
-
-\subsection{Req 01 -- Arithmetic recurrence with condition}
-
-\textbf{Requirement:} The signal \textit{EngagementNoSat\_u} shall equal $1.2 \times \mathit{EngagementNoSat\_u}(k{-}1)$ when \textit{Switch\_b} is true, and \textit{Lon\_u} otherwise. The initial value is 0.
-
-\medskip
-\textbf{Entities:}
-\begin{itemize}
-    \item $\mathit{EngagementNoSat\_u} \in E,\ t_e = \text{Signal}$
-    \item $\mathit{Switch\_b} \in E,\ t_e = \text{Signal}$
-    \item $\mathit{Lon\_u} \in E,\ t_e = \text{Signal}$
-\end{itemize}
-
-\textbf{Flavour:} Discrete.
-
-\textbf{Constraint:}
-\begin{align*}
-    &\mathit{Initial}\bigl(\mathit{Val}_\rho(\mathit{EngagementNoSat\_u},\, 0) = 0\bigr) \\
-    \land\; &\mathit{Always}\Bigl(\\
-    &\quad \bigl(\mathit{Val}_\rho(\mathit{Switch\_b},\, \mathit{Now}) = \mathit{true}\bigr) \Rightarrow {} \\
-    &\qquad \mathit{Val}_\rho(\mathit{EngagementNoSat\_u},\, \mathit{Now}) = 1.2 \cdot \mathit{Val}_\rho(\mathit{EngagementNoSat\_u},\, \mathit{Prev}(\mathit{Now}))\\
-    &\land\; \bigl(\mathit{Val}_\rho(\mathit{Switch\_b},\, \mathit{Now}) \neq \mathit{true}\bigr) \Rightarrow {} \\
-    &\qquad \mathit{Val}_\rho(\mathit{EngagementNoSat\_u},\, \mathit{Now}) = \mathit{Val}_\rho(\mathit{Lon\_u},\, \mathit{Now})
-    \;\Bigr)
-\end{align*}
-
-\subsection{Req 02 -- Store to non-volatile memory}
-
-\textbf{Requirement:} The software shall store the maximum execution time measurement data in non-volatile memory at address \textit{MEASUREMT\_BLOCK}.
-
-\textbf{TOTO ASI UPLNE NENI TO CO CHCEME. :(}
-
-\medskip
-\textbf{Entities:}
-\begin{itemize}
-    \item $\mathit{max\_exec\_time\_data} \in E,\ t_e = \text{Abstract}$
-    \item $\mathit{MEASUREMT\_BLOCK} \in E,\ t_e = \text{Storage},\ \mu_e = \{\mathit{non\_volatile} \mapsto \top\}$
-\end{itemize}
-
-\textbf{Flavour:} Discrete.
-
-\textbf{Constraint:}
-\[
-    \mathit{Eventually}\Bigl(
-        \mathit{Val}_\rho(\mathit{MEASUREMT\_BLOCK},\, \mathit{Now}) = \mathit{Val}_\rho(\mathit{max\_exec\_time\_data},\, \mathit{Now})
-    \Bigr)
-\]
-
-\subsection{Req 03 -- Ordered read then store to CPU register}
-
-\textbf{Requirement:} The software must perform the following actions in the specified order:
-1) Read the calibration constant value at the address 0xAA000018;
-2) Store the calibration constant value in the DTSCON register.
-
-\medskip
-\textbf{Entities:}
-\begin{itemize}
-    \item $\mathit{calibration\_const} \in E,\ t_e = \text{Storage},\ \mu_e = \{\mathit{address} \mapsto \texttt{0xAA000018}\}$
-    \item $\mathit{DTSCON} \in E,\ t_e = \text{Storage},\ \mu_e = \{\mathit{register} \mapsto \top\}$
-\end{itemize}
-
-\textbf{Flavour:} Discrete.
-
-\textbf{Constraint:}
-\[
-    \mathit{Sequence}\Bigl(
-        \mathit{Happening}(\mathit{read}(\mathit{calibration\_const}),\, \mathit{Now}),\;
-        \mathit{Happening}(\mathit{written}(\mathit{DTSCON}),\, \mathit{Now})
-    \Bigr)
-\]
-
-\subsection{Req 04 -- Exception vector table configuration}
-
-\textbf{Requirement:} The software must configure IVORx registers with the addresses of Exception Vectors that compose the Exception Vector Table, according to the following table:
-\begin{center}
-\begin{tabular}{ll}
-    \toprule
-    \textbf{IVORx} & \textbf{Exception} \\
-    \midrule
-    IVOR0 & Critical input \\
-    IVOR1 & Machine check \\
-    \bottomrule
-\end{tabular}
-\end{center}
-
-\medskip
-\textbf{Entities:}
-\begin{itemize}
-    \item $\mathit{IVOR0} \in E,\ t_e = \text{Storage},\ \mu_e = \{\mathit{register} \mapsto \top\}$
-    \item $\mathit{IVOR1} \in E,\ t_e = \text{Storage},\ \mu_e = \{\mathit{register} \mapsto \top\}$
-    \item $\mathit{CriticalInput} \in E,\ t_e = \text{Storage}$
-    \item $\mathit{MachineCheck} \in E,\ t_e = \text{Storage}$
-\end{itemize}
-
-\textbf{Flavour:} Discrete.
-
-\textbf{Constraint:}
-\[
-    \mathit{Eventually}\Bigl(
-        \mathit{Val}_\rho(\mathit{IVOR0},\, \mathit{Now}) = \mathit{Addr}(\mathit{CriticalInput})
-        \;\land\;
-        \mathit{Val}_\rho(\mathit{IVOR1},\, \mathit{Now}) = \mathit{Addr}(\mathit{MachineCheck})
-    \Bigr)
-\]
-
-\subsection{Req 13 -- Bounded count of large register values}
-
-\textbf{Requirement:} The number of values larger than 10 in the four registers A, B, C, D when they are read at the same timestep is never greater than 2.
-
-\medskip
-\textbf{Entities:}
-\begin{itemize}
-    \item $A \in E,\ t_e = \text{Storage},\ \mu_e = \{\mathit{register} \mapsto \top\}$
-    \item $B \in E,\ t_e = \text{Storage},\ \mu_e = \{\mathit{register} \mapsto \top\}$
-    \item $C \in E,\ t_e = \text{Storage},\ \mu_e = \{\mathit{register} \mapsto \top\}$
-    \item $D \in E,\ t_e = \text{Storage},\ \mu_e = \{\mathit{register} \mapsto \top\}$
-\end{itemize}
-
-\textbf{Flavour:} Discrete.
-
-\textbf{Constraint:}
-
-Let $\mathit{big}(e) \;\triangleq\; \mathit{Val}_\rho(e,\, \mathit{Now}) > 10$ for $e \in \{A, B, C, D\}$.
-``At most 2 of the four registers exceed 10'' is equivalent to ``no 3-element subset all exceed 10'', i.e.\ $\neg(\text{at least 3 exceed 10})$.
-Since there are $\binom{4}{3} = 4$ such subsets, the constraint is:
-
-\begin{align*}
-    \mathit{Always}\Bigl(
-        &\mathit{AllOf}\bigl(\{\,
-            \mathit{Happening}(\mathit{read}(A),\, \mathit{Now}),\;
-            \mathit{Happening}(\mathit{read}(B),\, \mathit{Now}),\\
-        &\quad
-            \mathit{Happening}(\mathit{read}(C),\, \mathit{Now}),\;
-            \mathit{Happening}(\mathit{read}(D),\, \mathit{Now})
-        \,\}\bigr) \\
-        &\Rightarrow \mathit{Not}\Bigl(\mathit{AnyOf}\bigl(\{\\
-        &\qquad \mathit{AllOf}(\{\mathit{big}(A),\, \mathit{big}(B),\, \mathit{big}(C)\}),\\
-        &\qquad \mathit{AllOf}(\{\mathit{big}(A),\, \mathit{big}(B),\, \mathit{big}(D)\}),\\
-        &\qquad \mathit{AllOf}(\{\mathit{big}(A),\, \mathit{big}(C),\, \mathit{big}(D)\}),\\
-        &\qquad \mathit{AllOf}(\{\mathit{big}(B),\, \mathit{big}(C),\, \mathit{big}(D)\})\\
-        &\}\bigr)\Bigr)
-    \Bigr)
-\end{align*}
-
-The antecedent holds at time $t$ iff all four registers are read simultaneously.
-The consequent rules out every possible combination of three registers all exceeding 10, which is necessary and sufficient for at most two values to be greater than 10.
+\input{examples}
 
 \end{document}
