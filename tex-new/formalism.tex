@@ -57,6 +57,8 @@
 \usepackage[normalem]{ulem}
 \usepackage{nameref}
 \usepackage{etoolbox}
+\usepackage{xcolor}
+\newcommand{\todo}[1]{\textcolor{red}{TODO: [#1]}}
 
 \newtheorem{definition}{Definition}
 \AtEndEnvironment{definition}{\vspace{0.5em}}
@@ -697,21 +699,32 @@ A test case exercises a subset of the same entities to produce a concrete trace,
 
 Together, $\mathit{setup}$ and $\mathit{stimuli}$ define a trace $\rho$. The coverage checker determines which predicates in a requirement's constraint are exercised by $\rho$.
 
-\section{Notes}
+\section{Design Decisions}
 
 \begin{itemize}
-    \item Lepsi ponechat typ entity, protoze musime mapovat na modifiers,
-          item ktere jsou rozdilne pro kazdy typ entity. Zaroven muzeme namapovat
-          typ entity na mnozinu operaci.
-    \item Modifiers need to be parameterized.
-    \item We could theoretically map entity types directly to predicates, which
-          can be set to \textit{true}, but maybe we will want different predicates depending on the context (e.g. discrete or continuous time).
-    \item $T$ should be merged discrete and continuous.
-    \item Need to resolve undefined with time functions.
-    \item Last n-th occurence.
-    \item From time to predicates that hold? What would that be useful for? Do we really want to reference predicates in other predicates?
+    \item Retaining the entity type as an explicit field is justified because it allows us to map each type to its own set of applicable modifiers and to its own set of applicable operations. \todo{This might be outdated now.}
+\end{itemize}
+
+\section{Current Limitations}
+
+\begin{itemize}
+    \item Modifiers need to be parameterized. \todo{This is maybe done now? Need to verify.}
+    \item \textbf{Partiality of time functions}: several functions are explicitly partial -- $\mathit{Prev}$ is undefined at $t = 0$, $\mathit{RelTime}$ is undefined when $t + n < 0$, $\mathit{MkInterval}$ is undefined when $t_1 > t_2$, $\mathit{ValBefore}_\rho$ is undefined when no prior operation has fired, and $\mathit{Val}_\rho$ is undefined when the entity has no value at the given time point. The formalism does not yet specify how partiality propagates when one of these appears inside a larger expression or predicate. For example, if $\mathit{Now} = 0$ then $\mathit{Val}_\rho(e,\, \mathit{Prev}(\mathit{Now})) = 5$ contains an undefined sub-expression, and the truth value of the predicate is ambiguous. The options are:
+    \begin{itemize}
+        \item \emph{Well-formedness condition}: forbid such expressions syntactically, requiring the user to guard them explicitly (e.g.\ $\mathit{Now} > 0$).
+        \item \emph{Three-valued / Kleene logic}: undefinedness propagates upward and yields a third truth value.
+        \item \emph{Definedness guard}: any predicate containing an undefined sub-expression evaluates to $\mathit{false}$.
+    \end{itemize}
     \item \textbf{Open question -- Channel/transmit semantics}: the transmitted value persists on the channel until the next \textit{transmit}, so \textit{receive} at any $t' \geq t$ reads the last transmitted value. It is unclear whether this is the right model for all channel types, or whether some channels should require the receiver to observe the value at the exact transmission time.
-    \item \textbf{Future addition -- Time-when expression}: add $\mathit{LastTrue}_\rho(\psi, t)$ returning the last $t' \leq t$ at which $\psi(\rho, t') = \mathit{true}$, and symmetrically $\mathit{FirstTrue}_\rho(\psi, t)$. Currently only $\mathit{LastOcc}_\rho$ and $\mathit{FirstOcc}_\rho$ cover this for \texttt{Event} entities specifically.
+\end{itemize}
+
+\section{Future Extensions}
+
+\begin{itemize}
+    \item \textbf{Predicate snapshot comparison}: it may be useful to capture the \emph{set of predicates that hold} at a given time point and compare that set with the one captured at a different time point. For example, one might want to assert that the set of predicates holding at time $t_1$ is equal to, a subset of, or has a non-empty intersection with the set holding at some later $t_2$. A concrete use case is a reset requirement: ``after a reset, the system must be in the same logical state as at initialisation'', where ``logical state'' is characterised by which predicates hold. This would require introducing a function $\mathit{Snapshot}_\rho : \mathcal{P}(\mathbf{Pred}) \times T \rightarrow \mathcal{P}(\mathbf{Pred})$ that returns the subset of a given predicate set that holds at a time point, and then allowing set operations ($=$, $\subseteq$, $\cap \neq \emptyset$) on the results.
+    \item \textbf{Time-when expression}: add $\mathit{LastTrue}_\rho(\psi, t)$ returning the last $t' \leq t$ at which $\psi(\rho, t') = \mathit{true}$, and symmetrically $\mathit{FirstTrue}_\rho(\psi, t)$. Currently only $\mathit{LastOcc}_\rho$ and $\mathit{FirstOcc}_\rho$ cover this for \texttt{Event} entities specifically.
+    \item \textbf{Time element for continuous requirements}: a requirement could optionally declare a \emph{time element} $\varepsilon \in \mathbb{R}_{>0}$, representing the smallest meaningful time increment in that requirement (e.g. a sampling period or clock cycle). In the continuous-time flavour, $\mathit{Prev}$ and $\mathit{Next}$ are currently undefined because there is no canonical predecessor or successor of a real-valued time point. With a declared $\varepsilon$, they could be lifted to continuous time as $\mathit{Prev}(t) = t - \varepsilon$ and $\mathit{Next}(t) = t + \varepsilon$, making the full set of discrete-time expressions available to requirements that have a known sampling granularity.
+    \item \textbf{Unified time model via time element}: the current formalism maintains two separate time flavours, $T_D = \mathbb{N}$ and $T_C = \mathbb{R}_{\geq 0}$, selected per requirement. These could be unified into a single model by making the time element $\varepsilon$ (see the time element extension) a mandatory requirement parameter. The unified time set would then be $T = \{0,\, \varepsilon,\, 2\varepsilon,\, 3\varepsilon,\, \ldots\}$, restricting time to multiples of $\varepsilon$ and making $\mathit{Prev}(t) = t - \varepsilon$ and $\mathit{Next}(t) = t + \varepsilon$ total (except at $t = 0$). Under this model, discrete time is simply the special case $\varepsilon = 1$, and a ``continuous'' requirement with a known sampling period $\varepsilon$ is expressed the same way. Crucially, this is a stronger commitment than merely defining $\mathit{Prev}$ and $\mathit{Next}$ on an otherwise uncountable $\mathbb{R}_{\geq 0}$: it makes the time domain itself countable, so that quantifiers such as $\forall t \in T$ range over a countable set, which is important for coverage checking to remain tractable.
     \item \textbf{Open question -- Synchronous channel model}: the current model is asynchronous -- \textit{transmit} and \textit{receive} are independent operations that may occur at different times. An alternative synchronous model would have \textit{transmit} directly cause \textit{received} to fire at the same time $t$, making \textit{receive} a consequence of \textit{transmit} rather than a separate operation.
 \end{itemize}
 
