@@ -51,6 +51,7 @@
 \usepackage{stmaryrd}
 \usepackage[margin=2.5cm]{geometry}
 \usepackage[normalem]{ulem}
+\usepackage{hyperref}
 \usepackage{nameref}
 \usepackage{etoolbox}
 \usepackage{xcolor}
@@ -59,13 +60,16 @@
 \newtheorem{definition}{Definition}
 \AtEndEnvironment{definition}{\vspace{0.5em}}
 
-\title{PP1 - Evaluating Test Coverage Against Software Requirements -- formal base}
+\title{PP1 - Evaluating Test Coverage Against Software Requirements -- Formalism}
 \author{  }
 \date{April 2026}
 
 \begin{document}
 
 \maketitle
+
+\tableofcontents
+\newpage
 
 \include{formalism}
 
@@ -101,6 +105,9 @@
     \item \textbf{Typed sets}
     \item \textbf{Entity lookup by human-readable label.} A function $\mathit{IdByLabel} : \Gamma^* \rightharpoonup \mathit{ID}_E$ could resolve a short human-readable name to an entity identifier. The function is partial (undefined when no entity matches or the label is ambiguous). This is primarily a tooling concern: the formal handle is the entity identifier $id_e$; how a user locates that identifier from natural language is outside the core formalism.
     \item \textbf{Required modifier keys.} The current $M_E$ function specifies which modifier keys are \emph{permitted} for each entity type, but all modifiers are optional. A future extension could introduce a companion function $M_E^{\text{req}} : T_E \rightarrow \mathcal{P}(\mathit{ModKey})$ specifying which modifier keys are \emph{required}. For example, predefined-event \texttt{Event} entities (those used with $\mathit{EvtPred}$) should always have both $\mathit{target}$ and $\mathit{type}$ defined.
+    \item \textbf{Aggregate expression recognition.} When a test case computes a result through a sequence of arithmetic operations (e.g.\ summing values and dividing by a count), the coverage checker must be able to recognise that the computation is equivalent to an aggregate such as average or median. Without this, a test exercising $\mathit{avg}(e, i)$ expressed via raw arithmetic would not be matched against a requirement that references the same aggregate by name. A future extension should define canonical aggregate expressions ($\mathit{Avg}$, $\mathit{Median}$, etc.) and a normalisation or equivalence procedure that maps common arithmetic patterns to them.
+    \item \textbf{Dynamic entity lifetimes.} The entity set $E$ is fixed for the scope of a requirement, so the formalism cannot distinguish between an entity that does not exist at time $t$ and one that merely has no value there -- both reduce to $\sigma(e)$ being undefined. If entities with dynamic lifetimes are needed (e.g.\ a spawned process or an opened connection), an explicit existence predicate $\mathit{Exists} : E \times T \to \mathbb{B}$ should be introduced, with $\mathit{Val}_\rho(e, t)$ defined only when $\mathit{Exists}(e, t) = \mathit{true}$.
+    \item \textbf{User-defined modifier keys.} Currently, the set of permitted modifier keys for each entity type is fixed by $M_E$ and can only be extended at the formalism level. A future extension could allow users to attach arbitrary key-value annotations to entities inline when writing a requirement -- for example, to record a physical unit, an address, or a domain-specific tag -- without requiring a change to $M_E$. One approach is to introduce a distinguished \emph{user-defined} modifier namespace $\mathit{ModKey}_{\mathit{user}} \cap \mathit{ModKey} = \emptyset$ and extend $M_E$ so that every entity type implicitly permits all keys from $\mathit{ModKey}_{\mathit{user}}$. The \texttt{Abstract} entity type already serves as a catch-all for entities that do not fit a predefined kind; user-defined modifiers would naturally complement it.
 \end{itemize}
 
 \newpage
