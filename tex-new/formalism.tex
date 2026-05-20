@@ -129,6 +129,7 @@ Therefore we define the \textit{entity type modifiers function}.
         \toprule
         \textbf{Entity type} & \textbf{Modifier key} & \textbf{Value type} \\
         \midrule
+        \text{Storage} & $\mathit{address}$ & $\mathbb{N}$ \\
         \text{Event} & $\mathit{target}$ & $\mathit{ID}_E$ \\
         \text{Event} & $\mathit{type}$        & $\mathit{EventTypeLabel}$ \\
         \bottomrule
@@ -299,8 +300,6 @@ The following functions are defined for both time flavours.
 \subsubsection{Entity attribute accessors}\label{subsec:entity_attrs}
 
 These expressions return static properties of entities and do not depend on the trace or time.
-
-% TODO: this needs to be fixed
 
 \begin{definition}[Address]\label{def:addr}
     For a \texttt{Storage} entity $e \in E$ carrying an address modifier, $\mathit{Addr} : E \rightarrow V$ returns the static address value:
@@ -541,28 +540,24 @@ The operation is applied to some entity, which means that the argument list of e
     We write $O$ for the finite set of all operations.
 \end{definition}
 
-% TODO fix the following
-
 \begin{definition}[Entity type operations function]\label{def:entity_type_ops_fn}
     \[
-        O_T : T_E \times \mathcal{P}(M) \rightarrow \mathcal{P}(O)
+        O_T : T_E \rightarrow \mathcal{P}(O)
     \]
     maps each entity type and set of modifiers to its applicable operations.
 \end{definition}
 
 The concrete mapping, including argument types and effects, is as follows.
-In effect predicates, $t_{\mathit{next}}$ denotes the next time the same operation fires on the same entity after $t$, or $\infty$ if no such firing occurs:
+In effect predicates, $t_{\mathit{next}}$ denotes the next time \emph{any} value-modifying operation fires on entity $e$ after $t$, or $\infty$ if no such firing occurs:
 
 \[
     t_{\mathit{next}} = \begin{cases}
-        \min\{\, t' \in T \mid t' > t \;\land\; \mathit{op} \text{ fires on } e \text{ at } t' \,\} & \text{if such } t' \text{ exists} \\
+        \min\{\, t' \in T \mid t' > t \;\land\; \text{a value-modifying } op' \in O_T(t_e) \text{ fires on } e \text{ at } t' \,\} & \text{if such } t' \text{ exists} \\
         \infty & \text{otherwise}
     \end{cases}
 \]
 
-, where $t$ is the time of the current firing of the operation on entity $e$.
-
-\todo{This is wrong, because there can be multiple operation that modify the entity value.}
+, where $t$ is the time of the current firing and value-modifying operations are those whose effect predicate contains a $\mathit{Val}_\rho(e, -)$ term (i.e.\ $\mathit{calculate}$, $\mathit{write}$, $\mathit{set\_state}$, $\mathit{transmit}$, $\mathit{insert}$, $\mathit{remove}$, $\mathit{clear}$, and the destination side of $\mathit{read}$ and $\mathit{receive}$).
 
 In the effect column, $\mathit{EvtPred}(e,\, ek,\, t)$ is used as shorthand for:
 \[

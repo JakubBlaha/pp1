@@ -84,7 +84,7 @@
 \section{Current Limitations}
 
 \begin{itemize}
-    \item Modifiers need to be parameterized. \todo{This is maybe done now? Need to verify.}
+    \item Modifiers need to be parameterized.
     \item \textbf{Partiality of time functions}: several functions are explicitly partial -- $\mathit{Prev}$ is undefined at $t = 0$, $\mathit{RelTime}$ is undefined when $t + n < 0$, $\mathit{MkInterval}$ is undefined when $t_1 > t_2$, $\mathit{ValBefore}_\rho$ is undefined when no prior operation has fired, and $\mathit{Val}_\rho$ is undefined when the entity has no value at the given time point. The formalism does not yet specify how partiality propagates when one of these appears inside a larger expression or predicate. For example, if $\mathit{Now} = 0$ then $\mathit{Val}_\rho(e,\, \mathit{Prev}(\mathit{Now})) = 5$ contains an undefined sub-expression, and the truth value of the predicate is ambiguous. The options are:
     \begin{itemize}
         \item \emph{Well-formedness condition}: forbid such expressions syntactically, requiring the user to guard them explicitly (e.g.\ $\mathit{Now} > 0$).
