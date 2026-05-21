@@ -13,11 +13,12 @@ The goal is to enable mechanical detection of coverage gaps: given a set of requ
 
 \subsection{The design principles of the formal base}
 
-The formalism is designed around two mandatory properties.
+The formalism is designed around these properties.
 
 \begin{itemize}
 \item \textbf{extensibility} -- adding new entity kinds or operations must require only extending the entity type set $T_E$, the values set $V$, the entity type modifiers function $M_E$, and the entity type operations function $O_T$.
 \item \textbf{matchability} -- a formalised requirement and a formalised test case must be expressed using the same \textbf{predicates}, so that the coverage checker can determine which truth assignments to those predicates are exercised by the tests and which logical combinations remain uncovered.
+\item \textbf{ambient evaluation} -- every expression is implicitly a function of a trace $\rho$ and a current time $\mathit{Now}$. It is the surrounding temporal construct (e.g.\ $\mathit{Always}$, $\mathit{Causes}$, $\mathit{CausesWithin}$) that supplies $\mathit{Now}$ by quantifying over time; expressions and operations never take $\mathit{Now}$ as an explicit argument. This means the same expression can be reused inside different temporal constructs and its meaning changes solely by what the construct binds $\mathit{Now}$ to.
 \end{itemize}
 
 \section{The primitives}
