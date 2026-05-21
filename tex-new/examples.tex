@@ -410,3 +410,51 @@ Both the antecedent and the consequent quantify over $\mathit{regs}$:
 
 The antecedent holds at time $t$ iff all four registers are read simultaneously.
 The consequent builds the set of registers whose value exceeds 10 and asserts its cardinality is at most 2.
+
+\subsection{Req 10 -- Repeated failure triggers emergency mode}
+
+\textbf{Requirement:} The software shall enter the emergency mode if any of the following failures individually occurs twice in less than 10 seconds:
+\begin{itemize}
+    \item[(a)] sensor failure
+    \item[(b)] energy failure
+    \item[(c)] communication failure.
+\end{itemize}
+
+\medskip
+\textbf{Entities:}
+\begin{center}
+\begin{tabular}{lll}
+    \toprule
+    \textbf{Entity} & $t_e$ & $\mu_e$ \\
+    \midrule
+    $\mathit{sensor\_failure}$  & EventTrigger & --- \\
+    $\mathit{ev\_sensor\_fail}$ & Event & $\{\mathit{target} \mapsto id_{\mathit{sensor\_failure}},\ \mathit{type} \mapsto \mathit{generic}\}$ \\
+    $\mathit{energy\_failure}$  & EventTrigger & --- \\
+    $\mathit{ev\_energy\_fail}$ & Event & $\{\mathit{target} \mapsto id_{\mathit{energy\_failure}},\ \mathit{type} \mapsto \mathit{generic}\}$ \\
+    $\mathit{comm\_failure}$    & EventTrigger & --- \\
+    $\mathit{ev\_comm\_fail}$   & Event & $\{\mathit{target} \mapsto id_{\mathit{comm\_failure}},\ \mathit{type} \mapsto \mathit{generic}\}$ \\
+    $\mathit{emergency\_mode}$  & State & --- \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Flavour:} Continuous (time unit: seconds).
+
+\textbf{Constraint:}
+\begin{align*}
+    \mathit{Causes}\Bigl(
+        &\;\Bigl(\mathit{Happening}(\mathit{ev\_sensor\_fail},\, \mathit{Now}) \\
+        &\qquad\land\; \mathit{EvtOccCount}_\rho\bigl(\mathit{ev\_sensor\_fail},\, \mathit{MkIntervalOO}(\mathit{Now} - 10,\, \mathit{Now})\bigr) \geq 1\Bigr) \\
+        \lor\;
+        &\;\Bigl(\mathit{Happening}(\mathit{ev\_energy\_fail},\, \mathit{Now}) \\
+        &\qquad\land\; \mathit{EvtOccCount}_\rho\bigl(\mathit{ev\_energy\_fail},\, \mathit{MkIntervalOO}(\mathit{Now} - 10,\, \mathit{Now})\bigr) \geq 1\Bigr) \\
+        \lor\;
+        &\;\Bigl(\mathit{Happening}(\mathit{ev\_comm\_fail},\, \mathit{Now}) \\
+        &\qquad\land\; \mathit{EvtOccCount}_\rho\bigl(\mathit{ev\_comm\_fail},\, \mathit{MkIntervalOO}(\mathit{Now} - 10,\, \mathit{Now})\bigr) \geq 1\Bigr), \\
+        &\;\mathit{Val}_\rho(\mathit{emergency\_mode},\, \mathit{Now}) = \mathit{true}
+    \;\Bigr)
+\end{align*}
+
+\textit{``Individually''}: the three failure types are tracked separately; $\psi$ is instantiated independently for each event entity, so a sensor failure and an energy failure occurring within 10 seconds of each other do not jointly trigger the condition.
+\textit{``Twice in less than 10 seconds''}: $\mathit{MkIntervalOO}(\mathit{Now} - 10,\, \mathit{Now})$ is open on both ends: the left endpoint excludes a gap of exactly 10 seconds (``less than''), and the right endpoint excludes $\mathit{Now}$ itself so that only the previous occurrence is counted alongside the current $\mathit{Happening}$.
+\textit{Edge case}: when $\mathit{Now} < 10$, the expression $\mathit{Now} - 10$ is negative and outside $T = \mathbb{R}_{\geq 0}$; in practice no event can occur before time 0, so the count is still correct, but a well-formed guard $\mathit{Now} \geq 10$ would be needed to make the interval argument a valid element of $T$.
