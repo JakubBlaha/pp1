@@ -565,7 +565,7 @@ Since $\Delta \subseteq \mathbb{R}$, duration comparison is a special case of $\
 \section{Operations}
 
 An operation is an action that the system performs at a specific point in time.
-Each operation has a set of arguments and produces an \emph{effect predicate} — a formal statement, parameterised by the firing time $t$, of what must hold in the trace as a result of the operation being performed.
+Each operation has a set of arguments and produces \emph{effect predicates} — a formal statement, parameterised by the firing time $t$, of what must hold in the trace as a result of the operation being performed.
 The operation is applied to some entity, which means that the argument list of every operation must include the entity the operation is applied to.
 
 \begin{definition}[Operation]\label{def:operation}
@@ -697,7 +697,7 @@ A requirement is a formal constraint on the system's behaviour, expressed as a t
 \begin{definition}[Requirement]\label{def:requirement}
     A \emph{requirement} is a triple $R = (\mathit{flavour},\, \mathit{entities},\, \mathit{constraint})$ where:
     \begin{itemize}
-        \item $\mathit{flavour} \in \{\text{Discrete},\, \text{Continuous}\}$ fixes the time set $T$ for this requirement ($T_D$ or $T_C$ respectively), determining which expressions and temporal constructs are well-typed
+        \item $\mathit{flavour} \in \{\text{Discrete},\, \text{Continuous}\}$ fixes the time set $T$ for this requirement ($T_D$ or $T_C$ respectively)
         \item $\mathit{entities} \subseteq E$ is the set of entities participating in this requirement
         \item $\mathit{constraint} \in \mathbf{TracePred}$ is the formal constraint on the trace
     \end{itemize}
@@ -707,11 +707,10 @@ A requirement is a formal constraint on the system's behaviour, expressed as a t
 A test case exercises a subset of the same entities to produce a concrete trace, which the coverage checker then analyses against the requirement's constraint.
 
 \begin{definition}[Test case]\label{def:test_case}
-    A \emph{test case} is a pair $\mathit{TestCase} = (\mathit{setup},\, \mathit{stimuli})$ where:
+    A \emph{test case} is a triple $\mathit{TestCase} = (\mathit{setup},\, \mathit{stimuli},\, \mathit{assertions})$ where:
     \begin{itemize}
         \item $\mathit{setup}$ is a valuation $\sigma_0 : E \rightharpoonup V$ establishing the initial state of the relevant entities
-        \item $\mathit{stimuli} : T \to \mathcal{P}(O)$ maps each time point to the set of operations that fire at that time; it has finite support (non-empty for only finitely many $t$)
+        \item $\mathit{stimuli}$ is a finite set of operation invocations; each invocation is a tuple $(t,\, op,\, e,\, a_1,\, \ldots,\, a_n)$ where $t \in T$ is the firing time, $op$ is an operation name from the operations table, $e \in E$ is the target entity, and $a_1, \ldots, a_n \in V \cup E$ are the additional arguments required by $op$
+        \item $\mathit{assertions} : T \to \mathcal{P}(\mathbf{Pred})$ maps each time point to the set of point-in-time predicates the test verifies at that time; it has finite support
     \end{itemize}
 \end{definition}
-
-Together, $\mathit{setup}$ and $\mathit{stimuli}$ define a trace $\rho$. The coverage checker determines which predicates in a requirement's constraint are exercised by $\rho$.
