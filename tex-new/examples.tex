@@ -7,7 +7,7 @@ The examples in this section are sample requirements provided by the stakeholder
 \textbf{Requirement:} After the system enters emergency mode, at each discrete time step the counter \textit{counter\_1} is incremented by 3.
 
 \medskip
-\textbf{Entities:}
+
 \begin{center}
 \begin{tabular}{lll}
     \toprule
@@ -36,7 +36,7 @@ The consequent requires $\mathit{counter\_1}$ to equal its previous value plus 3
 \textbf{Requirement:} The signal \textit{EngagementNoSat\_u} shall equal $1.2 \times \mathit{EngagementNoSat\_u}(k{-}1)$ when \textit{Switch\_b} is true, and \textit{Lon\_u} otherwise. The initial value is 0.
 
 \medskip
-\textbf{Entities:}
+
 \begin{center}
 \begin{tabular}{ll}
     \toprule
@@ -67,7 +67,7 @@ The consequent requires $\mathit{counter\_1}$ to equal its previous value plus 3
 \textbf{Requirement:} The software shall store the maximum execution time measurement data in non-volatile memory at address \textit{MEASUREMT\_BLOCK}.
 
 \medskip
-\textbf{Entities:}
+
 \begin{center}
 \begin{tabular}{lll}
     \toprule
@@ -99,7 +99,7 @@ The consequent requires $\mathit{counter\_1}$ to equal its previous value plus 3
 2) Store the calibration constant value in the DTSCON register.
 
 \medskip
-\textbf{Entities:}
+
 \begin{center}
 \begin{tabular}{lll}
     \toprule
@@ -140,7 +140,7 @@ The consequent requires $\mathit{counter\_1}$ to equal its previous value plus 3
 \end{center}
 
 \medskip
-\textbf{Entities:}
+
 \begin{center}
 \begin{tabular}{lll}
     \toprule
@@ -165,12 +165,212 @@ The consequent requires $\mathit{counter\_1}$ to equal its previous value plus 3
     \Bigr)
 \]
 
+\subsection{Req 05 -- Exception handling procedure}
+
+\textbf{Requirement:} The software, when handling an exception, must execute the following steps in order:
+(1) copy register SRR0 to R5;
+(2) invoke the image exception handler;
+(3) if the handler returns, hold software execution.
+
+\medskip
+\begin{center}
+\begin{tabular}{lll}
+    \toprule
+    \textbf{Entity} & $t_e$ & $\mu_e$ \\
+    \midrule
+    $\mathit{SRR0}$ & Storage & $\{\mathit{register} \mapsto \top\}$ \\
+    $\mathit{R5}$ & Storage & $\{\mathit{register} \mapsto \top\}$ \\
+    $\mathit{ev\_written\_r5}$ & Event & $\{\mathit{target} \mapsto id_{\mathit{R5}},\ \mathit{type} \mapsto \mathit{written}\}$ \\
+    $\mathit{exception}$ & EventTrigger & --- \\
+    $\mathit{ev\_exception}$ & Event & $\{\mathit{target} \mapsto id_{\mathit{exception}},\ \mathit{type} \mapsto \mathit{generic}\}$ \\
+    $\mathit{invoke\_ieh}$ & EventTrigger & --- \\
+    $\mathit{ev\_invoke\_ieh}$ & Event & $\{\mathit{target} \mapsto id_{\mathit{invoke\_ieh}},\ \mathit{type} \mapsto \mathit{generic}\}$ \\
+    $\mathit{return\_ieh}$ & EventTrigger & --- \\
+    $\mathit{ev\_return\_ieh}$ & Event & $\{\mathit{target} \mapsto id_{\mathit{return\_ieh}},\ \mathit{type} \mapsto \mathit{generic}\}$ \\
+    $\mathit{hold\_exec}$ & EventTrigger & --- \\
+    $\mathit{ev\_hold\_exec}$ & Event & $\{\mathit{target} \mapsto id_{\mathit{hold\_exec}},\ \mathit{type} \mapsto \mathit{generic}\}$ \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Flavour:} Discrete.
+
+\textbf{Constraint:}
+\begin{align*}
+    &\mathit{Sequence}\Bigl( \\
+    &\quad \mathit{Happening}(\mathit{ev\_exception},\, \mathit{Now}), \\
+    &\quad \mathit{Happening}(\mathit{ev\_written\_r5},\, \mathit{Now}) \\
+    &\qquad \land\; \mathit{Val}_\rho(\mathit{R5},\, \mathit{Now}) = \mathit{Val}_\rho(\mathit{SRR0},\, \mathit{Now}), \\
+    &\quad \mathit{Happening}(\mathit{ev\_invoke\_ieh},\, \mathit{Now})
+    \;\Bigr) \\
+    \land\; &\mathit{Causes}\Bigl(
+        \mathit{Happening}(\mathit{ev\_return\_ieh},\, \mathit{Now}),\;
+        \mathit{Happening}(\mathit{ev\_hold\_exec},\, \mathit{Now})
+    \Bigr)
+\end{align*}
+
+$\mathit{Sequence}$ is existential: it requires at least one complete chain to occur in the trace.
+The universal reading --- every exception must trigger this sequence --- would require a triggered-sequence construct not yet in the formalism.
+The $\mathit{Causes}$ clause is conditional: it fires only if the handler returns, directly modelling the ``if returns'' branch.
+
+\subsection{Req 06 -- Scheduling deadline}
+
+\textbf{Requirement:} The software must start executing the sequence of tasks allocated to the execution schedule in less than 2 seconds after processor power-up.
+
+\medskip
+\textbf{Entities:}
+\begin{center}
+\begin{tabular}{lll}
+    \toprule
+    \textbf{Entity} & $t_e$ & $\mu_e$ \\
+    \midrule
+    $\mathit{processor\_power\_up}$ & EventTrigger & --- \\
+    $\mathit{ev\_power\_up}$ & Event & $\{\mathit{target} \mapsto id_{\mathit{processor\_power\_up}},\ \mathit{type} \mapsto \mathit{generic}\}$ \\
+    $\mathit{invoke\_task\_seq}$ & EventTrigger & --- \\
+    $\mathit{ev\_invoke\_task\_seq}$ & Event & $\{\mathit{target} \mapsto id_{\mathit{invoke\_task\_seq}},\ \mathit{type} \mapsto \mathit{generic}\}$ \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Flavour:} Continuous (time unit: seconds).
+
+\textbf{Constraint:}
+\[
+    \mathit{CausesWithin}\Bigl(
+        \mathit{Happening}(\mathit{ev\_power\_up},\, \mathit{Now}),\;
+        \mathit{Happening}(\mathit{ev\_invoke\_task\_seq},\, \mathit{Now}),\;
+        2
+    \Bigr)
+\]
+
+$\mathit{CausesWithin}$ uses a closed interval $[t,\, t+2]$, which admits exactly $2\,\text{s}$ and slightly over-approximates the strict bound.
+An open-interval variant would be needed to express $< 2\,\text{s}$ exactly.
+
+\subsection{Req 07 -- Mode enable transmission after initialisation}
+
+\textbf{Requirement:} After its initialisation, the software shall transmit the signal \textit{Mode Enable} with value \textsc{true} through DDS topic \textit{MODESET\_TOPIC}.
+
+\medskip
+\textbf{Entities:}
+\begin{center}
+\begin{tabular}{lll}
+    \toprule
+    \textbf{Entity} & $t_e$ & $\mu_e$ \\
+    \midrule
+    $\mathit{MODESET\_TOPIC}$ & Channel & --- \\
+    $\mathit{ev\_transmitted\_modeset}$ & Event & $\{\mathit{target} \mapsto id_{\mathit{MODESET\_TOPIC}},\ \mathit{type} \mapsto \mathit{transmitted}\}$ \\
+    $\mathit{initialization\_end}$ & EventTrigger & --- \\
+    $\mathit{ev\_init\_end}$ & Event & $\{\mathit{target} \mapsto id_{\mathit{initialization\_end}},\ \mathit{type} \mapsto \mathit{generic}\}$ \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Flavour:} Discrete.
+
+\textbf{Constraint:}
+\begin{align*}
+    &\mathit{Causes}\Bigl( \\
+    &\quad \mathit{Happening}(\mathit{ev\_init\_end},\, \mathit{Now}), \\
+    &\quad \mathit{Happening}(\mathit{ev\_transmitted\_modeset},\, \mathit{Now}) \\
+    &\qquad \land\; \mathit{Val}_\rho(\mathit{MODESET\_TOPIC},\, \mathit{Now}) = \mathit{true}
+    \;\Bigr)
+\end{align*}
+
+The value check on $\mathit{MODESET\_TOPIC}$ is a separate predicate rather than part of the event itself, which is the event-payload limitation noted in the Future Extensions.
+
+\subsection{Req 08 -- State transition on received mastership data}
+
+\textbf{Requirement:} The software shall operate as Backup when it receives a new data instance of \textit{MastershipInfo} with parameter \textit{Mastership\_b} equal to \textsc{backup}.
+
+\medskip
+\textbf{Entities:}
+\begin{center}
+\begin{tabular}{lll}
+    \toprule
+    \textbf{Entity} & $t_e$ & $\mu_e$ \\
+    \midrule
+    $\mathit{MastershipInfo}$ & Channel & --- \\
+    $\mathit{ev\_received\_mastership}$ & Event & $\{\mathit{target} \mapsto id_{\mathit{MastershipInfo}},\ \mathit{type} \mapsto \mathit{received}\}$ \\
+    $\mathit{Backup}$ & State & --- \\
+    $\mathit{ev\_entered\_backup}$ & Event & $\{\mathit{target} \mapsto id_{\mathit{Backup}},\ \mathit{type} \mapsto \mathit{entered}\}$ \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Flavour:} Discrete.
+
+\textbf{Constraint:}
+\begin{align*}
+    &\mathit{Causes}\Bigl( \\
+    &\quad \mathit{Happening}(\mathit{ev\_received\_mastership},\, \mathit{Now}) \\
+    &\qquad \land\; \mathit{Val}_\rho(\mathit{MastershipInfo},\, \mathit{Now}) = \mathit{BACKUP}, \\
+    &\quad \mathit{Happening}(\mathit{ev\_entered\_backup},\, \mathit{Now})
+    \;\Bigr)
+\end{align*}
+
+$\mathit{BACKUP}$ is an enum constant; enum types are not yet part of $V_{\text{base}}$ and would require a future extension.
+The value check on $\mathit{MastershipInfo}$ is a separate predicate rather than part of the event, which is the event-payload limitation noted in the Future Extensions.
+
+\todo{Need to add enum values}
+
+\subsection{Req 09 -- Timed signal toggle with multi-condition guard}
+
+\textbf{Requirement:} The software must toggle \textit{valid\_range}, within 500\,ns of a write to $d$, if ALL the following conditions are satisfied:
+\begin{itemize}
+    \item The difference between last Maximum Peak and Minimum Peak of $d$ is higher than 655.
+    \item It is the second write to $d$ after the Minimum Peak detection.
+    \item Signed value of $d$ is higher than the signed value of last $d$.
+\end{itemize}
+
+\medskip
+\textbf{Entities:}
+\begin{center}
+\begin{tabular}{lll}
+    \toprule
+    \textbf{Entity} & $t_e$ & $\mu_e$ \\
+    \midrule
+    $d$ & Signal & --- \\
+    $\mathit{valid\_range}$ & Signal & --- \\
+    $\mathit{ev\_written\_d}$ & Event & $\{\mathit{target} \mapsto id_d,\ \mathit{type} \mapsto \mathit{written}\}$ \\
+    $\mathit{ev\_written\_vr}$ & Event & $\{\mathit{target} \mapsto id_{\mathit{valid\_range}},\ \mathit{type} \mapsto \mathit{written}\}$ \\
+    $\mathit{min\_peak\_det}$ & EventTrigger & --- \\
+    $\mathit{ev\_min\_peak\_det}$ & Event & $\{\mathit{target} \mapsto id_{\mathit{min\_peak\_det}},\ \mathit{type} \mapsto \mathit{generic}\}$ \\
+    $\mathit{max\_peak\_det}$ & EventTrigger & --- \\
+    $\mathit{ev\_max\_peak\_det}$ & Event & $\{\mathit{target} \mapsto id_{\mathit{max\_peak\_det}},\ \mathit{type} \mapsto \mathit{generic}\}$ \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Flavour:} Continuous (time unit: nanoseconds).
+
+\medskip
+Let $t_{\mathit{mpd}} = \mathit{Start}(\mathit{LastOcc}_\rho(\mathit{ev\_min\_peak\_det},\, \mathit{Now},\, 1))$,
+$t_{\mathit{Mpd}} = \mathit{Start}(\mathit{LastOcc}_\rho(\mathit{ev\_max\_peak\_det},\, \mathit{Now},\, 1))$, and
+$t_{\mathit{prevd}} = \mathit{Start}(\mathit{LastOcc}_\rho(\mathit{ev\_written\_d},\, \mathit{Now},\, 2))$
+abbreviate the times of the most recent minimum peak detection, maximum peak detection, and second-to-last write to $d$, all up to $\mathit{Now}$.
+
+\textbf{Constraint:}
+\begin{align*}
+    &\mathit{CausesWithin}\Bigl( \\
+    &\quad \mathit{Happening}(\mathit{ev\_written\_d},\, \mathit{Now}) \\
+    &\quad \land\; \mathit{Val}_\rho(d,\, t_{\mathit{Mpd}}) - \mathit{Val}_\rho(d,\, t_{\mathit{mpd}}) > 655 \\
+    &\quad \land\; \mathit{EvtOccCount}_\rho(\mathit{ev\_written\_d},\, \mathit{MkIntervalOC}(t_{\mathit{mpd}},\, \mathit{Now})) = 2 \\
+    &\quad \land\; \mathit{Val}_\rho(d,\, \mathit{Now}) > \mathit{Val}_\rho(d,\, t_{\mathit{prevd}}), \\
+    &\quad \mathit{Happening}(\mathit{ev\_written\_vr},\, \mathit{Now}) \\
+    &\qquad \land\; \mathit{Val}_\rho(\mathit{valid\_range},\, \mathit{Now}) = \lnot\mathit{ValBefore}_\rho(\mathit{valid\_range},\, \mathit{Now}), \\
+    &\quad 500
+    \;\Bigr)
+\end{align*}
+
+\textit{Condition 2}: $\mathit{MkIntervalOC}(t_{\mathit{mpd}},\, \mathit{Now})$ is open on the left, so a write coinciding exactly with the minimum peak detection at $t_{\mathit{mpd}}$ is not counted, correctly capturing ``after the Minimum Peak detection''.
+\textit{Condition 3}: ``signed value of last $d$'' means the value of $d$ at the previous write event, captured explicitly by $\mathit{Val}_\rho(d,\, t_{\mathit{prevd}})$. The signed integer interpretation has no counterpart in the formalism since $d$ is treated as a real-valued signal.
+$\mathit{valid\_range}$ is assumed boolean; $\lnot$ denotes boolean negation.
+
 \subsection{Req 13 -- Bounded count of large register values}
 
 \textbf{Requirement:} The number of values larger than 10 in the four registers A, B, C, D when they are read at the same timestep is never greater than 2.
 
 \medskip
-\textbf{Entities:}
 \begin{center}
 \begin{tabular}{lll}
     \toprule
