@@ -58,11 +58,23 @@ We say that $T$ is an infinite totally ordered set; the time set can have \texti
 \end{definition}
 
 \begin{definition}[Interval]\label{def:interval}
-    An \emph{interval} is a pair of a start time point and a duration:
+    An \emph{interval} is a tuple of a start time point, a duration, and two endpoint-openness flags:
     \[
-        \mathcal{I} = T \times \Delta
+        \mathcal{I} = T \times \Delta \times \mathbb{B} \times \mathbb{B}
     \]
-    An interval $(t, d) \in \mathcal{I}$ represents the time span $[t,\, t + d]$.
+    An interval $(t, d, \ell, r) \in \mathcal{I}$ represents a time span with start $t$, end $t+d$, left-open flag $\ell$, and right-open flag $r$:
+    \begin{center}
+    \begin{tabular}{ccc}
+        \toprule
+        $\ell$ & $r$ & represented span \\
+        \midrule
+        $\mathit{false}$ & $\mathit{false}$ & $[t,\; t+d]$ \\
+        $\mathit{true}$  & $\mathit{false}$ & $(t,\; t+d]$ \\
+        $\mathit{false}$ & $\mathit{true}$  & $[t,\; t+d)$ \\
+        $\mathit{true}$  & $\mathit{true}$  & $(t,\; t+d)$ \\
+        \bottomrule
+    \end{tabular}
+    \end{center}
 \end{definition}
 
 \begin{definition}[Entity identifier set]\label{def:entity_id_set}
@@ -261,12 +273,15 @@ The following functions are defined for both time flavours.
     \]
 \end{definition}
 
-\begin{definition}[]\label{def:mk_interval}
-    $\mathit{MkInterval} : T \times T \rightharpoonup \mathcal{I}$ constructs an interval from a start and end time point:
-    \[
-        \mathit{MkInterval}(t_1,\, t_2) \;=\; (t_1,\; t_2 - t_1)
-    \]
-    The function is partial: it is undefined when $t_1 > t_2$.
+\begin{definition}[Interval constructors]\label{def:mk_interval}
+    Four constructors build intervals from a start and end time point, differing only in endpoint openness.
+    All are partial: undefined when $t_1 > t_2$.
+    \begin{align*}
+        \mathit{MkIntervalCC}(t_1,\, t_2)   &\;=\; (t_1,\; t_2 - t_1,\; \mathit{false},\; \mathit{false}) & &[t_1,\, t_2] \\
+        \mathit{MkIntervalOC}(t_1,\, t_2) &\;=\; (t_1,\; t_2 - t_1,\; \mathit{true},\;  \mathit{false}) & &(t_1,\, t_2] \\
+        \mathit{MkIntervalCO}(t_1,\, t_2) &\;=\; (t_1,\; t_2 - t_1,\; \mathit{false},\; \mathit{true})  & &[t_1,\, t_2) \\
+        \mathit{MkIntervalOO}(t_1,\, t_2) &\;=\; (t_1,\; t_2 - t_1,\; \mathit{true},\;  \mathit{true})  & &(t_1,\, t_2)
+    \end{align*}
 \end{definition}
 
 \begin{definition}[Since-zero interval]\label{def:since_zero}
@@ -279,22 +294,45 @@ The following functions are defined for both time flavours.
 \begin{definition}[Interval start]\label{def:interval_start}
     $\mathit{Start} : \mathcal{I} \rightarrow T$ returns the start time point of an interval:
     \[
-        \mathit{Start}((t,\, d)) \;=\; t
+        \mathit{Start}((t,\, d,\, \ell,\, r)) \;=\; t
     \]
 \end{definition}
 
 \begin{definition}[Interval end]\label{def:interval_end}
     $\mathit{End} : \mathcal{I} \rightarrow T$ returns the end time point of an interval:
     \[
-        \mathit{End}((t,\, d)) \;=\; t + d
+        \mathit{End}((t,\, d,\, \ell,\, r)) \;=\; t + d
     \]
 \end{definition}
 
 \begin{definition}[Interval duration]\label{def:interval_duration}
     $\mathit{Duration} : \mathcal{I} \rightarrow \Delta$ returns the duration of an interval:
     \[
-        \mathit{Duration}((t,\, d)) \;=\; d
+        \mathit{Duration}((t,\, d,\, \ell,\, r)) \;=\; d
     \]
+\end{definition}
+
+\begin{definition}[Interval endpoint openness]\label{def:interval_open}
+    $\mathit{IsLeftOpen},\, \mathit{IsRightOpen} : \mathcal{I} \rightarrow \mathbb{B}$ return the endpoint-openness flags:
+    \[
+        \mathit{IsLeftOpen}((t,\, d,\, \ell,\, r)) \;=\; \ell
+        \qquad
+        \mathit{IsRightOpen}((t,\, d,\, \ell,\, r)) \;=\; r
+    \]
+\end{definition}
+
+\begin{definition}[Time point interval membership]\label{def:in_interval}
+    $\mathit{InInterval} : T \times \mathcal{I} \rightarrow \mathbb{B}$ holds when time point $s$ falls within interval $i$:
+    \begin{align*}
+        \mathit{InInterval}(s,\, i) \;\Leftrightarrow\;
+            &\bigl(\mathit{IsLeftOpen}(i) \Rightarrow \mathit{Start}(i) < s\bigr) \\
+            \land\;
+            &\bigl(\lnot\mathit{IsLeftOpen}(i) \Rightarrow \mathit{Start}(i) \leq s\bigr) \\
+            \land\;
+            &\bigl(\mathit{IsRightOpen}(i) \Rightarrow s < \mathit{End}(i)\bigr) \\
+            \land\;
+            &\bigl(\lnot\mathit{IsRightOpen}(i) \Rightarrow s \leq \mathit{End}(i)\bigr)
+    \end{align*}
 \end{definition}
 
 \subsubsection{Entity attribute accessors}\label{subsec:entity_attrs}
@@ -332,7 +370,7 @@ The following functions additionally take a trace $\rho \in \Sigma^T$ and produc
     For a trace $\rho \in \Sigma^T$ and an entity $ev \in E$ of type \texttt{Event},
     $\mathit{EvtOccCount}_\rho : E \times \mathcal{I} \rightarrow \mathbb{N}$ returns the number of occurrences of $ev$ within an interval $i \in \mathcal{I}$:
     \[
-        \mathit{EvtOccCount}_\rho(ev,\, i) \;=\; \bigl|\{\, s \in T \mid \mathit{Start}(i) \leq s \leq \mathit{End}(i) \;\land\; \mathit{Val}_\rho(ev,\, s) = \mathit{true} \,\}\bigr|
+        \mathit{EvtOccCount}_\rho(ev,\, i) \;=\; \bigl|\{\, s \in T \mid \mathit{InInterval}(s,\, i) \;\land\; \mathit{Val}_\rho(ev,\, s) = \mathit{true} \,\}\bigr|
     \]
 \end{definition}
 
@@ -341,7 +379,7 @@ The following functions additionally take a trace $\rho \in \Sigma^T$ and produc
     let $t_1 \leq t_2 \leq \cdots \leq t_n$ be the $n$ most recent occurrence times of $ev$ up to $t$, i.e.\ the $n$ largest elements of $\{\, s \in T \mid s \leq t \;\land\; \mathit{Val}_\rho(ev,\, s) = \mathit{true} \,\}$ sorted in ascending order.
     Then $\mathit{LastOcc}_\rho : E \times T \times \mathbb{N}^+ \rightharpoonup \mathcal{I}$ is defined as:
     \[
-        \mathit{LastOcc}_\rho(ev,\, t,\, n) \;=\; \mathit{MkInterval}(t_1,\, t_n)
+        \mathit{LastOcc}_\rho(ev,\, t,\, n) \;=\; \mathit{MkIntervalCC}(t_1,\, t_n)
     \]
     The function is partial: it is undefined when fewer than $n$ occurrences of $ev$ exist up to $t$.
 
@@ -350,12 +388,12 @@ The following functions additionally take a trace $\rho \in \Sigma^T$ and produc
 
 \begin{definition}[First occurrences function]\label{def:first_occ}
     For a trace $\rho \in \Sigma^T$, an entity $ev \in E$ of type \texttt{Event}, a time point $t \in T$, and $n \in \mathbb{N}^+$,
-    let $t_1 \leq t_2 \leq \cdots \leq t_n$ be the $n$ earliest occurrence times of $ev$ up to $t$, i.e.\ the $n$ smallest elements of $\{\, s \in T \mid s \leq t \;\land\; \mathit{Val}_\rho(ev,\, s) = \mathit{true} \,\}$ sorted in ascending order.
+    let $t_1 \leq t_2 \leq \cdots \leq t_n$ be the $n$ earliest occurrence times of $ev$ at or after $t$, i.e.\ the $n$ smallest elements of $\{\, s \in T \mid s \geq t \;\land\; \mathit{Val}_\rho(ev,\, s) = \mathit{true} \,\}$ sorted in ascending order.
     Then $\mathit{FirstOcc}_\rho : E \times T \times \mathbb{N}^+ \rightharpoonup \mathcal{I}$ is defined as:
     \[
-        \mathit{FirstOcc}_\rho(ev,\, t,\, n) \;=\; \mathit{MkInterval}(t_1,\, t_n)
+        \mathit{FirstOcc}_\rho(ev,\, t,\, n) \;=\; \mathit{MkIntervalCC}(t_1,\, t_n)
     \]
-    The function is partial: it is undefined when fewer than $n$ occurrences of $ev$ exist up to $t$.
+    The function is partial: it is undefined when fewer than $n$ occurrences of $ev$ exist at or after $t$.
 
     \textit{Note:} The time of the first occurrence is $\mathit{Start}(\mathit{FirstOcc}_\rho(ev, t, 1))$.
 \end{definition}
