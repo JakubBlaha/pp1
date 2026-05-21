@@ -1,5 +1,7 @@
 \section{Examples}
 
+The examples in this section are sample requirements provided by the stakeholder rewritten into a formal form using an Claude Sonnet 4.6 with prompting guidance. That means the examples were not one-shotted. It seems so far that the model is not capable of one shotting these requirements.
+
 \subsection{Custom Counter}
 
 \textbf{Requirement:} After the system enters emergency mode, at each discrete time step the counter \textit{counter\_1} is incremented by 3.
@@ -64,8 +66,6 @@ The consequent requires $\mathit{counter\_1}$ to equal its previous value plus 3
 
 \textbf{Requirement:} The software shall store the maximum execution time measurement data in non-volatile memory at address \textit{MEASUREMT\_BLOCK}.
 
-\todo{TOTO ASI UPLNE NENI TO CO CHCEME. :(}
-
 \medskip
 \textbf{Entities:}
 \begin{center}
@@ -75,6 +75,8 @@ The consequent requires $\mathit{counter\_1}$ to equal its previous value plus 3
     \midrule
     $\mathit{max\_exec\_time\_data}$ & Abstract & --- \\
     $\mathit{MEASUREMT\_BLOCK}$ & Storage & $\{\mathit{non\_volatile} \mapsto \top\}$ \\
+    $\mathit{reset}$ & EventTrigger & --- \\
+    $\mathit{ev\_reset}$ & Event & $\{\mathit{target} \mapsto id_{\mathit{reset}},\ \mathit{type} \mapsto \mathit{generic}\}$ \\
     \bottomrule
 \end{tabular}
 \end{center}
@@ -82,11 +84,13 @@ The consequent requires $\mathit{counter\_1}$ to equal its previous value plus 3
 \textbf{Flavour:} Discrete.
 
 \textbf{Constraint:}
-\[
-    \mathit{Eventually}\Bigl(
-        \mathit{Val}_\rho(\mathit{MEASUREMT\_BLOCK},\, \mathit{Now}) = \mathit{Val}_\rho(\mathit{max\_exec\_time\_data},\, \mathit{Now})
-    \Bigr)
-\]
+\begin{align*}
+    &\mathit{Eventually}\Bigl(\mathit{Val}_\rho(\mathit{MEASUREMT\_BLOCK},\, \mathit{Now}) = \mathit{Val}_\rho(\mathit{max\_exec\_time\_data},\, \mathit{Now})\Bigr) \\
+    \land\; &\mathit{Always}\Bigl( \\
+    &\quad \mathit{Happening}(\mathit{ev\_reset},\, \mathit{Now}) \Rightarrow {} \\
+    &\qquad \mathit{Val}_\rho(\mathit{MEASUREMT\_BLOCK},\, \mathit{Next}(\mathit{Now})) = \mathit{ValBefore}_\rho(\mathit{MEASUREMT\_BLOCK},\, \mathit{Now})
+    \;\Bigr)
+\end{align*}
 
 \subsection{Req 03 -- Ordered read then store to CPU register}
 
@@ -112,14 +116,14 @@ The consequent requires $\mathit{counter\_1}$ to equal its previous value plus 3
 \textbf{Flavour:} Discrete.
 
 \textbf{Constraint:}
-\[
-    \mathit{Sequence}\Bigl(
-        \mathit{Happening}(\mathit{ev\_read\_cc},\, \mathit{Now}),\;
-        \mathit{Happening}(\mathit{ev\_written\_dtscon},\, \mathit{Now})
-    \Bigr)
-\]
-
-\todo{The Now is a little sus}
+\begin{align*}
+    &\mathit{Sequence}\Bigl( \\
+    &\quad \mathit{Happening}(\mathit{ev\_read\_cc},\, \mathit{Now}), \\
+    &\quad \mathit{Happening}(\mathit{ev\_written\_dtscon},\, \mathit{Now}) \\
+    &\quad \land\; \mathit{Val}_\rho(\mathit{DTSCON},\, \mathit{Now}) \\
+    &\qquad = \mathit{Val}_\rho\bigl(\mathit{calibration\_const},\, \mathit{Start}(\mathit{LastOcc}_\rho(\mathit{ev\_read\_cc},\, \mathit{Now},\, 1))\bigr)
+    \;\Bigr)
+\end{align*}
 
 \subsection{Req 04 -- Exception vector table configuration}
 
