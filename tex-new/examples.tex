@@ -6,11 +6,17 @@
 
 \medskip
 \textbf{Entities:}
-\begin{itemize}
-    \item $\mathit{enter\_emergency} \in E,\ t_e = \text{EventTrigger}$
-    \item $\mathit{ev\_enter\_emergency} \in E,\ t_e = \text{Event},\ \mu_e = \{\mathit{target} \mapsto id_{\mathit{enter\_emergency}},\ \mathit{type} \mapsto \mathit{generic}\}$
-    \item $\mathit{counter\_1} \in E,\ t_e = \text{Signal}$
-\end{itemize}
+\begin{center}
+\begin{tabular}{lll}
+    \toprule
+    \textbf{Entity} & $t_e$ & $\mu_e$ \\
+    \midrule
+    $\mathit{enter\_emergency}$ & EventTrigger & --- \\
+    $\mathit{ev\_enter\_emergency}$ & Event & $\{\mathit{target} \mapsto id_{\mathit{enter\_emergency}},\ \mathit{type} \mapsto \mathit{generic}\}$ \\
+    $\mathit{counter\_1}$ & Signal & --- \\
+    \bottomrule
+\end{tabular}
+\end{center}
 
 \textbf{Constraint:}
 \begin{align*}
@@ -29,11 +35,17 @@ The consequent requires $\mathit{counter\_1}$ to equal its previous value plus 3
 
 \medskip
 \textbf{Entities:}
-\begin{itemize}
-    \item $\mathit{EngagementNoSat\_u} \in E,\ t_e = \text{Signal}$
-    \item $\mathit{Switch\_b} \in E,\ t_e = \text{Signal}$
-    \item $\mathit{Lon\_u} \in E,\ t_e = \text{Signal}$
-\end{itemize}
+\begin{center}
+\begin{tabular}{ll}
+    \toprule
+    \textbf{Entity} & $t_e$ \\
+    \midrule
+    $\mathit{EngagementNoSat\_u}$ & Signal \\
+    $\mathit{Switch\_b}$ & Signal \\
+    $\mathit{Lon\_u}$ & Signal \\
+    \bottomrule
+\end{tabular}
+\end{center}
 
 \textbf{Flavour:} Discrete.
 
@@ -52,14 +64,20 @@ The consequent requires $\mathit{counter\_1}$ to equal its previous value plus 3
 
 \textbf{Requirement:} The software shall store the maximum execution time measurement data in non-volatile memory at address \textit{MEASUREMT\_BLOCK}.
 
-\textbf{TOTO ASI UPLNE NENI TO CO CHCEME. :(}
+\todo{TOTO ASI UPLNE NENI TO CO CHCEME. :(}
 
 \medskip
 \textbf{Entities:}
-\begin{itemize}
-    \item $\mathit{max\_exec\_time\_data} \in E,\ t_e = \text{Abstract}$
-    \item $\mathit{MEASUREMT\_BLOCK} \in E,\ t_e = \text{Storage},\ \mu_e = \{\mathit{non\_volatile} \mapsto \top\}$
-\end{itemize}
+\begin{center}
+\begin{tabular}{lll}
+    \toprule
+    \textbf{Entity} & $t_e$ & $\mu_e$ \\
+    \midrule
+    $\mathit{max\_exec\_time\_data}$ & Abstract & --- \\
+    $\mathit{MEASUREMT\_BLOCK}$ & Storage & $\{\mathit{non\_volatile} \mapsto \top\}$ \\
+    \bottomrule
+\end{tabular}
+\end{center}
 
 \textbf{Flavour:} Discrete.
 
@@ -78,12 +96,18 @@ The consequent requires $\mathit{counter\_1}$ to equal its previous value plus 3
 
 \medskip
 \textbf{Entities:}
-\begin{itemize}
-    \item $\mathit{calibration\_const} \in E,\ t_e = \text{Storage},\ \mu_e = \{\mathit{address} \mapsto \texttt{0xAA000018}\}$
-    \item $\mathit{DTSCON} \in E,\ t_e = \text{Storage},\ \mu_e = \{\mathit{register} \mapsto \top\}$
-    \item $\mathit{ev\_read\_cc} \in E,\ t_e = \text{Event},\ \mu_e = \{\mathit{target} \mapsto id_{\mathit{calibration\_const}},\ \mathit{type} \mapsto \mathit{read}\}$
-    \item $\mathit{ev\_written\_dtscon} \in E,\ t_e = \text{Event},\ \mu_e = \{\mathit{target} \mapsto id_{\mathit{DTSCON}},\ \mathit{type} \mapsto \mathit{written}\}$
-\end{itemize}
+\begin{center}
+\begin{tabular}{lll}
+    \toprule
+    \textbf{Entity} & $t_e$ & $\mu_e$ \\
+    \midrule
+    $\mathit{calibration\_const}$ & Storage & $\{\mathit{address} \mapsto \texttt{0xAA000018}\}$ \\
+    $\mathit{DTSCON}$ & Storage & $\{\mathit{register} \mapsto \top\}$ \\
+    $\mathit{ev\_read\_cc}$ & Event & $\{\mathit{target} \mapsto id_{\mathit{calibration\_const}},\ \mathit{type} \mapsto \mathit{read}\}$ \\
+    $\mathit{ev\_written\_dtscon}$ & Event & $\{\mathit{target} \mapsto id_{\mathit{DTSCON}},\ \mathit{type} \mapsto \mathit{written}\}$ \\
+    \bottomrule
+\end{tabular}
+\end{center}
 
 \textbf{Flavour:} Discrete.
 
@@ -94,6 +118,8 @@ The consequent requires $\mathit{counter\_1}$ to equal its previous value plus 3
         \mathit{Happening}(\mathit{ev\_written\_dtscon},\, \mathit{Now})
     \Bigr)
 \]
+
+\todo{The Now is a little sus}
 
 \subsection{Req 04 -- Exception vector table configuration}
 
@@ -111,12 +137,18 @@ The consequent requires $\mathit{counter\_1}$ to equal its previous value plus 3
 
 \medskip
 \textbf{Entities:}
-\begin{itemize}
-    \item $\mathit{IVOR0} \in E,\ t_e = \text{Storage},\ \mu_e = \{\mathit{register} \mapsto \top\}$
-    \item $\mathit{IVOR1} \in E,\ t_e = \text{Storage},\ \mu_e = \{\mathit{register} \mapsto \top\}$
-    \item $\mathit{CriticalInput} \in E,\ t_e = \text{Storage}$
-    \item $\mathit{MachineCheck} \in E,\ t_e = \text{Storage}$
-\end{itemize}
+\begin{center}
+\begin{tabular}{lll}
+    \toprule
+    \textbf{Entity} & $t_e$ & $\mu_e$ \\
+    \midrule
+    $\mathit{IVOR0}$ & Storage & $\{\mathit{register} \mapsto \top\}$ \\
+    $\mathit{IVOR1}$ & Storage & $\{\mathit{register} \mapsto \top\}$ \\
+    $\mathit{CriticalInput}$ & Storage & --- \\
+    $\mathit{MachineCheck}$ & Storage & --- \\
+    \bottomrule
+\end{tabular}
+\end{center}
 
 \textbf{Flavour:} Discrete.
 
@@ -135,16 +167,22 @@ The consequent requires $\mathit{counter\_1}$ to equal its previous value plus 3
 
 \medskip
 \textbf{Entities:}
-\begin{itemize}
-    \item $A \in E,\ t_e = \text{Storage},\ \mu_e = \{\mathit{register} \mapsto \top\}$
-    \item $B \in E,\ t_e = \text{Storage},\ \mu_e = \{\mathit{register} \mapsto \top\}$
-    \item $C \in E,\ t_e = \text{Storage},\ \mu_e = \{\mathit{register} \mapsto \top\}$
-    \item $D \in E,\ t_e = \text{Storage},\ \mu_e = \{\mathit{register} \mapsto \top\}$
-    \item $\mathit{ev\_read\_A} \in E,\ t_e = \text{Event},\ \mu_e = \{\mathit{target} \mapsto id_A,\ \mathit{type} \mapsto \mathit{read}\}$
-    \item $\mathit{ev\_read\_B} \in E,\ t_e = \text{Event},\ \mu_e = \{\mathit{target} \mapsto id_B,\ \mathit{type} \mapsto \mathit{read}\}$
-    \item $\mathit{ev\_read\_C} \in E,\ t_e = \text{Event},\ \mu_e = \{\mathit{target} \mapsto id_C,\ \mathit{type} \mapsto \mathit{read}\}$
-    \item $\mathit{ev\_read\_D} \in E,\ t_e = \text{Event},\ \mu_e = \{\mathit{target} \mapsto id_D,\ \mathit{type} \mapsto \mathit{read}\}$
-\end{itemize}
+\begin{center}
+\begin{tabular}{lll}
+    \toprule
+    \textbf{Entity} & $t_e$ & $\mu_e$ \\
+    \midrule
+    $A$ & Storage & $\{\mathit{register} \mapsto \top\}$ \\
+    $B$ & Storage & $\{\mathit{register} \mapsto \top\}$ \\
+    $C$ & Storage & $\{\mathit{register} \mapsto \top\}$ \\
+    $D$ & Storage & $\{\mathit{register} \mapsto \top\}$ \\
+    $\mathit{ev\_read\_A}$ & Event & $\{\mathit{target} \mapsto id_A,\ \mathit{type} \mapsto \mathit{read}\}$ \\
+    $\mathit{ev\_read\_B}$ & Event & $\{\mathit{target} \mapsto id_B,\ \mathit{type} \mapsto \mathit{read}\}$ \\
+    $\mathit{ev\_read\_C}$ & Event & $\{\mathit{target} \mapsto id_C,\ \mathit{type} \mapsto \mathit{read}\}$ \\
+    $\mathit{ev\_read\_D}$ & Event & $\{\mathit{target} \mapsto id_D,\ \mathit{type} \mapsto \mathit{read}\}$ \\
+    \bottomrule
+\end{tabular}
+\end{center}
 
 \textbf{Flavour:} Discrete.
 
