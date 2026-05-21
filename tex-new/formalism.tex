@@ -706,11 +706,22 @@ A requirement is a formal constraint on the system's behaviour, expressed as a t
 
 A test case exercises a subset of the same entities to produce a concrete trace, which the coverage checker then analyses against the requirement's constraint.
 
+\begin{definition}[Stimulus]\label{def:stimulus}
+    A \emph{stimulus} is a tuple $(t,\, op,\, e,\, a_1,\, \ldots,\, a_n)$ where:
+    \begin{itemize}
+        \item $t \in T$ is the firing time
+        \item $op$ is an operation name from the operations table
+        \item $e \in E$ is the target entity
+        \item $a_1, \ldots, a_n \in V \cup E$ are the additional arguments required by $op$
+    \end{itemize}
+    We write $\mathbf{Stim}$ for the set of all well-typed stimuli.
+\end{definition}
+
 \begin{definition}[Test case]\label{def:test_case}
     A \emph{test case} is a triple $\mathit{TestCase} = (\mathit{setup},\, \mathit{stimuli},\, \mathit{assertions})$ where:
     \begin{itemize}
         \item $\mathit{setup}$ is a valuation $\sigma_0 : E \rightharpoonup V$ establishing the initial state of the relevant entities
-        \item $\mathit{stimuli}$ is a finite set of operation invocations; each invocation is a tuple $(t,\, op,\, e,\, a_1,\, \ldots,\, a_n)$ where $t \in T$ is the firing time, $op$ is an operation name from the operations table, $e \in E$ is the target entity, and $a_1, \ldots, a_n \in V \cup E$ are the additional arguments required by $op$
+        \item $\mathit{stimuli} \in \mathcal{P}_{\mathrm{fin}}(\mathbf{Stim})$ is a finite set of stimuli
         \item $\mathit{assertions} : T \to \mathcal{P}(\mathbf{Pred})$ maps each time point to the set of point-in-time predicates the test verifies at that time; it has finite support
     \end{itemize}
 \end{definition}
