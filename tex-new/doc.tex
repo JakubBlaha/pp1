@@ -57,9 +57,9 @@
 \newtheorem{definition}{Definition}
 % \AtEndEnvironment{definition}{\vspace{0.5em}}
 
-\title{PP1 - Evaluating Test Coverage Against Software Requirements -- Formalism}
-\author{  }
-\date{April 2026}
+\title{Evaluating Test Completeness Against Software Requirements -- Formalism}
+\author{Bc. Jakub Bláha, Bc. Jan Klanica, Bc. Pavel Lukl, Bc. Timea Adamčíková}
+\date{\today}
 
 \begin{document}
 
@@ -70,49 +70,8 @@
 
 \include{formalism}
 
-\newpage
-
-\section{Design Decisions}
-
-\begin{itemize}
-    \item Retaining the entity type as an explicit field is justified because it allows us to map each type to its own set of applicable modifiers and to its own set of applicable operations. \todo{This might be outdated now.}
-\end{itemize}
-
-\section{Current Limitations}
-
-\begin{itemize}
-    \item Modifiers need to be parameterized.
-    \item \textbf{Partiality of time functions}: several functions are explicitly partial -- $\mathit{Prev}$ is undefined at $t = 0$, $\mathit{RelTime}$ is undefined when $t + n < 0$, $\mathit{MkInterval}$ is undefined when $t_1 > t_2$, $\mathit{ValBefore}_\rho$ is undefined when no prior operation has fired, and $\mathit{Val}_\rho$ is undefined when the entity has no value at the given time point. The formalism does not yet specify how partiality propagates when one of these appears inside a larger expression or predicate. For example, if $\mathit{Now} = 0$ then $\mathit{Val}_\rho(e,\, \mathit{Prev}(\mathit{Now})) = 5$ contains an undefined sub-expression, and the truth value of the predicate is ambiguous. The options are:
-    \begin{itemize}
-        \item \emph{Well-formedness condition}: forbid such expressions syntactically, requiring the user to guard them explicitly (e.g.\ $\mathit{Now} > 0$).
-        \item \emph{Three-valued / Kleene logic}: undefinedness propagates upward and yields a third truth value.
-        \item \emph{Definedness guard}: any predicate containing an undefined sub-expression evaluates to $\mathit{false}$.
-    \end{itemize}
-    \item \textbf{Open question -- Channel/transmit semantics}: the transmitted value persists on the channel until the next \textit{transmit}, so \textit{receive} at any $t' \geq t$ reads the last transmitted value. It is unclear whether this is the right model for all channel types, or whether some channels should require the receiver to observe the value at the exact transmission time.
-\end{itemize}
-
-\section{Future Extensions}
-
-\begin{itemize}
-    \item \textbf{Predicate snapshot comparison}: it may be useful to capture the \emph{set of predicates that hold} at a given time point and compare that set with the one captured at a different time point. For example, one might want to assert that the set of predicates holding at time $t_1$ is equal to, a subset of, or has a non-empty intersection with the set holding at some later $t_2$. A concrete use case is a reset requirement: ``after a reset, the system must be in the same logical state as at initialisation'', where ``logical state'' is characterised by which predicates hold. This would require introducing a function $\mathit{Snapshot}_\rho : \mathcal{P}(\mathbf{Pred}) \times T \rightarrow \mathcal{P}(\mathbf{Pred})$ that returns the subset of a given predicate set that holds at a time point, and then allowing set operations ($=$, $\subseteq$, $\cap \neq \emptyset$) on the results.
-    \item \textbf{Time-when expression}: add $\mathit{LastTrue}_\rho(\psi, t)$ returning the last $t' \leq t$ at which $\psi(\rho, t') = \mathit{true}$, and symmetrically $\mathit{FirstTrue}_\rho(\psi, t)$. Currently only $\mathit{LastOcc}_\rho$ and $\mathit{FirstOcc}_\rho$ cover this for \texttt{Event} entities specifically.
-    \item \textbf{Time element for continuous requirements}: a requirement could optionally declare a \emph{time element} $\varepsilon \in \mathbb{R}_{>0}$, representing the smallest meaningful time increment in that requirement (e.g. a sampling period or clock cycle). In the continuous-time flavour, $\mathit{Prev}$ and $\mathit{Next}$ are currently undefined because there is no canonical predecessor or successor of a real-valued time point. With a declared $\varepsilon$, they could be lifted to continuous time as $\mathit{Prev}(t) = t - \varepsilon$ and $\mathit{Next}(t) = t + \varepsilon$, making the full set of discrete-time expressions available to requirements that have a known sampling granularity.
-    \item \textbf{Unified time model via time element}: the current formalism maintains two separate time flavours, $T_D = \mathbb{N}$ and $T_C = \mathbb{R}_{\geq 0}$, selected per requirement. These could be unified into a single model by making the time element $\varepsilon$ (see the time element extension) a mandatory requirement parameter. The unified time set would then be $T = \{0,\, \varepsilon,\, 2\varepsilon,\, 3\varepsilon,\, \ldots\}$, restricting time to multiples of $\varepsilon$ and making $\mathit{Prev}(t) = t - \varepsilon$ and $\mathit{Next}(t) = t + \varepsilon$ total (except at $t = 0$). Under this model, discrete time is simply the special case $\varepsilon = 1$, and a ``continuous'' requirement with a known sampling period $\varepsilon$ is expressed the same way. Crucially, this is a stronger commitment than merely defining $\mathit{Prev}$ and $\mathit{Next}$ on an otherwise uncountable $\mathbb{R}_{\geq 0}$: it makes the time domain itself countable, so that quantifiers such as $\forall t \in T$ range over a countable set, which is important for coverage checking to remain tractable.
-    \item \textbf{Open question -- Synchronous channel model}: the current model is asynchronous -- \textit{transmit} and \textit{receive} are independent operations that may occur at different times. An alternative synchronous model would have \textit{transmit} directly cause \textit{received} to fire at the same time $t$, making \textit{receive} a consequence of \textit{transmit} rather than a separate operation.
-    \item \textbf{Typed sets}
-    \item \textbf{Entity lookup by human-readable label.} A function $\mathit{IdByLabel} : \Gamma^* \rightharpoonup \mathit{ID}_E$ could resolve a short human-readable name to an entity identifier. The function is partial (undefined when no entity matches or the label is ambiguous). This is primarily a tooling concern: the formal handle is the entity identifier $id_e$; how a user locates that identifier from natural language is outside the core formalism.
-    \item \textbf{Required modifier keys.} The current $M_E$ function specifies which modifier keys are \emph{permitted} for each entity type, but all modifiers are optional. A future extension could introduce a companion function $M_E^{\text{req}} : T_E \rightarrow \mathcal{P}(\mathit{ModKey})$ specifying which modifier keys are \emph{required}. For example, predefined-event \texttt{Event} entities (those used with $\mathit{EvtPred}$) should always have both $\mathit{target}$ and $\mathit{type}$ defined.
-    \item \textbf{Aggregate expression recognition.} When a test case computes a result through a sequence of arithmetic operations (e.g.\ summing values and dividing by a count), the coverage checker must be able to recognise that the computation is equivalent to an aggregate such as average or median. Without this, a test exercising $\mathit{avg}(e, i)$ expressed via raw arithmetic would not be matched against a requirement that references the same aggregate by name. A future extension should define canonical aggregate expressions ($\mathit{Avg}$, $\mathit{Median}$, etc.) and a normalisation or equivalence procedure that maps common arithmetic patterns to them.
-    \item \textbf{Triggered sequence construct.} $\mathit{Sequence}$ is existential: it requires at least one complete chain of ordered events to occur somewhere in the trace. The universal reading --- every occurrence of a triggering event must be followed by the full sequence --- cannot be expressed with the current constructs. A $\mathit{TriggeredSequence}(\psi_{\mathit{trigger}},\, \psi_1,\, \ldots,\, \psi_n)$ construct would be needed, expanding to $\forall t \in T:\; \psi_{\mathit{trigger}}(\rho, t) \Rightarrow \exists t \leq t_1 \leq \cdots \leq t_n:\; \psi_i(\rho, t_i)$ for all $i$.
-    \item \textbf{Dynamic entity lifetimes.} The entity set $E$ is fixed for the scope of a requirement, so the formalism cannot distinguish between an entity that does not exist at time $t$ and one that merely has no value there -- both reduce to $\sigma(e)$ being undefined. If entities with dynamic lifetimes are needed (e.g.\ a spawned process or an opened connection), an explicit existence predicate $\mathit{Exists} : E \times T \to \mathbb{B}$ should be introduced, with $\mathit{Val}_\rho(e, t)$ defined only when $\mathit{Exists}(e, t) = \mathit{true}$.
-    \item \textbf{Enum types.} The base values set $V_{\text{base}}$ currently contains only booleans, reals, time points, and intervals. Requirements that involve enumerated types (e.g.\ \textsc{backup}/\textsc{master} mastership modes, error codes, operating states) must represent enum values as untyped symbolic constants with no formal declaration or exhaustiveness guarantee. A future extension should introduce a named enum mechanism: a way to declare a finite set of symbolic constants (e.g.\ $\mathit{Mastership} = \{\mathit{BACKUP},\, \mathit{MASTER}\}$) and extend $V_{\text{base}}$ with their values, so that constraints can reference them by name and the coverage checker can enumerate their cases.
-    \item \textbf{Event payload.} Currently an event entity carries only a boolean occurrence flag ($\mathit{Val}_\rho(ev, t) \in \mathbb{B}$); any data associated with the event must be expressed as a separate value check on the target entity (e.g.\ $\mathit{Val}_\rho(\mathit{MODESET\_TOPIC},\, \mathit{Now}) = \mathit{true}$ alongside $\mathit{Happening}(\mathit{ev\_transmitted},\, \mathit{Now})$). This separates what logically belongs together and risks the value constraint being omitted in the requirement specification, silently leaving the payload not restricted to anything. A future extension should allow events to carry a typed payload, so that $\mathit{Happening}(ev,\, \mathit{Now},\, v)$ asserts both that the event fired and that it carried value $v$.
-    \item \textbf{User-defined modifier keys.} Currently, the set of permitted modifier keys for each entity type is fixed by $M_E$ and can only be extended at the formalism level. A future extension could allow users to attach arbitrary key-value annotations to entities inline when writing a requirement -- for example, to record a physical unit, an address, or a domain-specific tag -- without requiring a change to $M_E$. One approach is to introduce a distinguished \emph{user-defined} modifier namespace $\mathit{ModKey}_{\mathit{user}} \cap \mathit{ModKey} = \emptyset$ and extend $M_E$ so that every entity type implicitly permits all keys from $\mathit{ModKey}_{\mathit{user}}$. The \texttt{Abstract} entity type already serves as a catch-all for entities that do not fit a predefined kind; user-defined modifiers would naturally complement it.
-    \item \textbf{Global axioms.} The formalism should define a set of predicates (axioms) that hold in every well-formed trace, ruling out physically impossible states. For example, two write events cannot be happening on the same register at the same time. Such axioms would constrain $\rho$ and let the coverage checker reject inconsistent test cases.
-\end{itemize}
-
-\newpage
-
-\input{examples}
+% Uncomment back in if you need the examples
+% \newpage
+% \input{examples}
 
 \end{document}

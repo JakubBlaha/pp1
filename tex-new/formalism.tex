@@ -3,7 +3,6 @@
 
 \begin{itemize}
     \item \todo{Value transformations, like signed, etc.}
-    \item \todo{Solve channel sync/async}
 \end{itemize}
 
 \subsection{The purpose of the formal base}
@@ -16,9 +15,9 @@ The goal is to enable mechanical detection of coverage gaps: given a set of requ
 The formalism is designed around these properties.
 
 \begin{itemize}
-\item \textbf{extensibility} -- adding new entity kinds or operations must require only extending the entity type set $T_E$, the values set $V$, the entity type modifiers function $M_E$, and the entity type operations function $O_T$.
-\item \textbf{matchability} -- a formalised requirement and a formalised test case must be expressed using the same \textbf{predicates}, so that the coverage checker can determine which truth assignments to those predicates are exercised by the tests and which logical combinations remain uncovered.
-\item \textbf{ambient evaluation} -- every expression is implicitly a function of a trace $\rho$ and a current time $\mathit{Now}$. It is the surrounding temporal construct (e.g.\ $\mathit{Always}$, $\mathit{Causes}$, $\mathit{CausesWithin}$) that supplies $\mathit{Now}$ by quantifying over time; expressions and operations never take $\mathit{Now}$ as an explicit argument. This means the same expression can be reused inside different temporal constructs and its meaning changes solely by what the construct binds $\mathit{Now}$ to.
+    \item \textbf{extensibility} -- adding new entity kinds or operations must require only extending the entity type set $T_E$, the values set $V$, the entity type modifiers function $M_E$, and the entity type operations function $O_T$.
+    \item \textbf{matchability} -- a formalised requirement and a formalised test case must be expressed using the same \textbf{predicates}, so that the coverage checker can determine which truth assignments to those predicates are exercised by the tests and which logical combinations remain uncovered.
+    \item \textbf{ambient evaluation} -- every expression is implicitly a function of a trace $\rho$ and a current time $\mathit{Now}$. It is the surrounding temporal construct (e.g.\ $\mathit{Always}$, $\mathit{Causes}$, $\mathit{CausesWithin}$) that supplies $\mathit{Now}$ by quantifying over time; expressions and operations never take $\mathit{Now}$ as an explicit argument. This means the same expression can be reused inside different temporal constructs and its meaning changes solely by what the construct binds $\mathit{Now}$ to.
 \end{itemize}
 
 \section{The primitives}
@@ -65,16 +64,16 @@ We say that $T$ is an infinite totally ordered set; the time set can have \texti
     \]
     An interval $(t, d, \ell, r) \in \mathcal{I}$ represents a time span with start $t$, end $t+d$, left-open flag $\ell$, and right-open flag $r$:
     \begin{center}
-    \begin{tabular}{ccc}
-        \toprule
-        $\ell$ & $r$ & represented span \\
-        \midrule
-        $\mathit{false}$ & $\mathit{false}$ & $[t,\; t+d]$ \\
-        $\mathit{true}$  & $\mathit{false}$ & $(t,\; t+d]$ \\
-        $\mathit{false}$ & $\mathit{true}$  & $[t,\; t+d)$ \\
-        $\mathit{true}$  & $\mathit{true}$  & $(t,\; t+d)$ \\
-        \bottomrule
-    \end{tabular}
+        \begin{tabular}{ccc}
+            \toprule
+            $\ell$           & $r$              & represented span \\
+            \midrule
+            $\mathit{false}$ & $\mathit{false}$ & $[t,\; t+d]$     \\
+            $\mathit{true}$  & $\mathit{false}$ & $(t,\; t+d]$     \\
+            $\mathit{false}$ & $\mathit{true}$  & $[t,\; t+d)$     \\
+            $\mathit{true}$  & $\mathit{true}$  & $(t,\; t+d)$     \\
+            \bottomrule
+        \end{tabular}
     \end{center}
 \end{definition}
 
@@ -94,16 +93,16 @@ We say that $T$ is an infinite totally ordered set; the time set can have \texti
     The \emph{event type label set} $\mathit{EventTypeLabel}$ is a finite set of abstract symbols:
     \begin{gather*}
         \mathit{EventTypeLabel} = \{\,
-            \mathit{generic},\;
-            \mathit{calculated},\;
-            \mathit{written},\;
-            \mathit{read},\;
-            \mathit{entered},\;
-            \mathit{transmitted},\; \\
-            \mathit{received},\;
-            \mathit{inserted},\;
-            \mathit{removed},\;
-            \mathit{cleared}
+        \mathit{generic},\;
+        \mathit{calculated},\;
+        \mathit{written},\;
+        \mathit{read},\;
+        \mathit{entered},\;
+        \mathit{transmitted},\; \\
+        \mathit{received},\;
+        \mathit{inserted},\;
+        \mathit{removed},\;
+        \mathit{cleared}
         \,\}
     \end{gather*}
 \end{definition}
@@ -118,7 +117,6 @@ An entity type is an item belonging to a set of entity types. There is a number 
     \]
 \end{definition}
 
-
 Entity type modifiers are properties which can be attached to an entity of a particular type.
 A modifier is either a \emph{flag}, whose presence alone carries meaning, or a \emph{parameterised modifier}, which additionally carries a value in $\mathit{ModVal}$.
 
@@ -132,21 +130,20 @@ A modifier is either a \emph{flag}, whose presence alone carries meaning, or a \
 Each entity type is compatible with only a subset of the modifier keys.
 Therefore we define the \textit{entity type modifiers function}.
 
-
 \begin{definition}[Entity type modifiers function]\label{def:entity_type_modifiers_fn}
     $M_\text{E}: T_E \rightarrow \mathcal{P}(\mathit{ModKey})$ maps each entity type to its set of permitted modifier keys,
     where $\mathit{ModKey}$ is a finite nonempty set of modifier keys.
     The permitted modifier keys and their expected value types are:
     \begin{center}
-    \begin{tabular}{lll}
-        \toprule
-        \textbf{Entity type} & \textbf{Modifier key} & \textbf{Value type} \\
-        \midrule
-        \text{Storage} & $\mathit{address}$ & $\mathbb{N}$ \\
-        \text{Event} & $\mathit{target}$ & $\mathit{ID}_E$ \\
-        \text{Event} & $\mathit{type}$        & $\mathit{EventTypeLabel}$ \\
-        \bottomrule
-    \end{tabular}
+        \begin{tabular}{lll}
+            \toprule
+            \textbf{Entity type} & \textbf{Modifier key} & \textbf{Value type}       \\
+            \midrule
+            \text{Storage}       & $\mathit{address}$    & $\mathbb{N}$              \\
+            \text{Event}         & $\mathit{target}$     & $\mathit{ID}_E$           \\
+            \text{Event}         & $\mathit{type}$       & $\mathit{EventTypeLabel}$ \\
+            \bottomrule
+        \end{tabular}
     \end{center}
     Every \texttt{Event} entity is expected to carry both modifiers: user-declared events set $\mathit{target}$ to the identifier of their \texttt{EventTrigger} and $\mathit{type}$ to $\mathit{generic}$; predefined events set $\mathit{target}$ to their parent entity and $\mathit{type}$ to the appropriate event type.
 
@@ -171,8 +168,6 @@ Formally, an entity is defined as a three-item tuple.
     We write $E$ for the set of all entities. The set $E$ is finite and nonempty.\footnote{The set $E$ is finite in the scope of a single requirement.}
 \end{definition}
 
-\todo{Need to define Val\_set}
-
 \begin{definition}[Non-set values]\label{def:nonset_values}
     The \emph{non-set values} $V_{\text{nonset}}$ is the union of base values and entities:
     \[
@@ -186,10 +181,8 @@ Formally, an entity is defined as a three-item tuple.
         V = V_{\text{nonset}} \cup \mathcal{P}_{\text{fin}}(V_{\text{nonset}})
     \]
     where $\mathcal{P}_{\text{fin}}(V_{\text{nonset}})$ is the set of all finite subsets of $V_{\text{nonset}}$.
-    Set values are flat: they may contain only non-set values. 
+    Set values are flat: they may contain only non-set values.
 \end{definition}
-
-\todo{We might need non-flat sets at some point. We should make a decision on that.}
 
 \section{Valuations and traces}
 
@@ -278,10 +271,10 @@ The following functions are defined for both time flavours.
     Four constructors build intervals from a start and end time point, differing only in endpoint openness.
     All are partial: undefined when $t_1 > t_2$.
     \begin{align*}
-        \mathit{MkIntervalCC}(t_1,\, t_2)   &\;=\; (t_1,\; t_2 - t_1,\; \mathit{false},\; \mathit{false}) & &[t_1,\, t_2] \\
-        \mathit{MkIntervalOC}(t_1,\, t_2) &\;=\; (t_1,\; t_2 - t_1,\; \mathit{true},\;  \mathit{false}) & &(t_1,\, t_2] \\
-        \mathit{MkIntervalCO}(t_1,\, t_2) &\;=\; (t_1,\; t_2 - t_1,\; \mathit{false},\; \mathit{true})  & &[t_1,\, t_2) \\
-        \mathit{MkIntervalOO}(t_1,\, t_2) &\;=\; (t_1,\; t_2 - t_1,\; \mathit{true},\;  \mathit{true})  & &(t_1,\, t_2)
+        \mathit{MkIntervalCC}(t_1,\, t_2) & \;=\; (t_1,\; t_2 - t_1,\; \mathit{false},\; \mathit{false}) &  & [t_1,\, t_2] \\
+        \mathit{MkIntervalOC}(t_1,\, t_2) & \;=\; (t_1,\; t_2 - t_1,\; \mathit{true},\;  \mathit{false}) &  & (t_1,\, t_2] \\
+        \mathit{MkIntervalCO}(t_1,\, t_2) & \;=\; (t_1,\; t_2 - t_1,\; \mathit{false},\; \mathit{true})  &  & [t_1,\, t_2) \\
+        \mathit{MkIntervalOO}(t_1,\, t_2) & \;=\; (t_1,\; t_2 - t_1,\; \mathit{true},\;  \mathit{true})  &  & (t_1,\, t_2)
     \end{align*}
 \end{definition}
 
@@ -326,13 +319,13 @@ The following functions are defined for both time flavours.
     $\mathit{InInterval} : T \times \mathcal{I} \rightarrow \mathbb{B}$ holds when time point $s$ falls within interval $i$:
     \begin{align*}
         \mathit{InInterval}(s,\, i) \;\Leftrightarrow\;
-            &\bigl(\mathit{IsLeftOpen}(i) \Rightarrow \mathit{Start}(i) < s\bigr) \\
-            \land\;
-            &\bigl(\lnot\mathit{IsLeftOpen}(i) \Rightarrow \mathit{Start}(i) \leq s\bigr) \\
-            \land\;
-            &\bigl(\mathit{IsRightOpen}(i) \Rightarrow s < \mathit{End}(i)\bigr) \\
-            \land\;
-            &\bigl(\lnot\mathit{IsRightOpen}(i) \Rightarrow s \leq \mathit{End}(i)\bigr)
+         & \bigl(\mathit{IsLeftOpen}(i) \Rightarrow \mathit{Start}(i) < s\bigr)         \\
+        \land\;
+         & \bigl(\lnot\mathit{IsLeftOpen}(i) \Rightarrow \mathit{Start}(i) \leq s\bigr) \\
+        \land\;
+         & \bigl(\mathit{IsRightOpen}(i) \Rightarrow s < \mathit{End}(i)\bigr)          \\
+        \land\;
+         & \bigl(\lnot\mathit{IsRightOpen}(i) \Rightarrow s \leq \mathit{End}(i)\bigr)
     \end{align*}
 \end{definition}
 
@@ -539,29 +532,6 @@ Since $\Delta \subseteq \mathbb{R}$, duration comparison is a special case of $\
     \]
 \end{definition}
 
-% DESIGN CONCLUSION: OPERATIONS AND TEMPORAL EXTENT
-%
-% Operations (e.g. calculate, fire) do NOT take t as an explicit argument.
-% t is "ambient" -- it is supplied by the surrounding temporal construct
-% (Always, Triggered, etc.) at the requirement level.
-%
-% An operation produces a point-in-time effect predicate that holds at the
-% ambient t only. It says nothing about any other time point.
-%
-% We considered making calculate's effect hold from t onward
-% (i.e. forall t' >= t: Val_rho(e, t') = expr), but rejected this because:
-%   (a) The trace rho is a fixed mathematical object -- operations do not
-%       "write" to it. It already has whatever values it has at every time point.
-%   (b) A later operation in the same requirement may set a different value,
-%       which would directly contradict a "forall t' >= t" clause.
-%
-% Temporal extent is always the responsibility of the surrounding temporal
-% construct:
-%   Always(calculate(e, expr))           -- holds at every t
-%   Causes(cond, calculate(e, expr))     -- holds at every t where cond fires
-%   forall t' >= t: ...                  -- expressed at requirement level, not
-%                                           inside the operation definition
-
 \section{Operations}
 
 An operation is an action that the system performs at a specific point in time.
@@ -592,7 +562,7 @@ In effect predicates, $t_{\mathit{next}}$ denotes the next time \emph{any} value
 \[
     t_{\mathit{next}} = \begin{cases}
         \min\{\, t' \in T \mid t' > t \;\land\; \text{a value-modifying } op' \in O_T(t_e) \text{ fires on } e \text{ at } t' \,\} & \text{if such } t' \text{ exists} \\
-        \infty & \text{otherwise}
+        \infty                                                                                                                     & \text{otherwise}
     \end{cases}
 \]
 
@@ -610,38 +580,38 @@ i.e.\ every \texttt{Event} entity declared with the matching $\mathit{target}$ a
 \renewcommand{\arraystretch}{2}
 \begin{tabularx}{\textwidth}{lXX}
     \toprule
-    \textbf{Operation} & \textbf{Notes}                                                                    & \textbf{Effect predicates} \\
+    \textbf{Operation} & \textbf{Notes}                                                                                                                                                                                        & \textbf{Effect predicates} \\
     \midrule
     $\mathit{calculate}(t,\, e,\, \mathit{expr})$
                        & $t \in T$,\newline $e \in E,\ t_e = \text{Signal}$,\newline $\mathit{expr} \in \mathbf{Expr}$
-                       & $\mathit{EvtPred}(e,\, \mathit{calculated},\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$                  \\[4pt]
+                       & $\mathit{EvtPred}(e,\, \mathit{calculated},\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$                                                                      \\[4pt]
     $\mathit{write}(t,\, e,\, \mathit{expr})$
                        & $t \in T$,\newline $e \in E,\ t_e = \text{Storage}$,\newline $\mathit{expr} \in \mathbf{Expr}$
-                       & $\mathit{EvtPred}(e,\, \mathit{written},\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$                  \\[4pt]
+                       & $\mathit{EvtPred}(e,\, \mathit{written},\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$                                                                         \\[4pt]
     $\mathit{read}(t,\, e_{\mathit{src}},\, e_{\mathit{dst}})$
                        & $t \in T$,\newline $e_{\mathit{src}} \in E,\ t_{e_{\mathit{src}}} = \text{Storage}$,\newline $e_{\mathit{dst}} \in E,\ t_{e_{\mathit{dst}}} = \text{Signal}$
-                       & $\mathit{EvtPred}(e_{\mathit{src}},\, \mathit{read},\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e_{\mathit{dst}},\, t') = \mathit{Val}_\rho(e_{\mathit{src}},\, t)$  \\[4pt]
+                       & $\mathit{EvtPred}(e_{\mathit{src}},\, \mathit{read},\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e_{\mathit{dst}},\, t') = \mathit{Val}_\rho(e_{\mathit{src}},\, t)$                              \\[4pt]
     $\mathit{fire}(t,\, e)$
                        & $t \in T$, $e \in E,\ t_e = \text{EventTrigger}$
-                       & $\mathit{EvtPred}(e,\, \mathit{generic},\, t)$                                                                          \\[4pt]
+                       & $\mathit{EvtPred}(e,\, \mathit{generic},\, t)$                                                                                                                                                                                     \\[4pt]
     $\mathit{set\_state}(t,\, e,\, s)$
                        & $t \in T$,\newline $e \in E,\ t_e = \text{State}$,\newline $s \in V$
-                       & $\mathit{EvtPred}(e,\, \mathit{entered},\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = s$  \\[4pt]
+                       & $\mathit{EvtPred}(e,\, \mathit{entered},\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = s$                                                                                                \\[4pt]
     $\mathit{transmit}(t,\, e,\, \mathit{expr})$
                        & $t \in T$,\newline $e \in E,\ t_e = \text{Channel}$,\newline $\mathit{expr} \in \mathbf{Expr}$
-                       & $\mathit{EvtPred}(e,\, \mathit{transmitted},\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$      \\[4pt]
+                       & $\mathit{EvtPred}(e,\, \mathit{transmitted},\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$                                                                     \\[4pt]
     $\mathit{receive}(t,\, e_{\mathit{src}},\, e_{\mathit{dst}})$
                        & $t \in T$,\newline $e_{\mathit{src}} \in E,\ t_{e_{\mathit{src}}} = \text{Channel}$,\newline $e_{\mathit{dst}} \in E,\ t_{e_{\mathit{dst}}} = \text{Signal}$
-                       & $\mathit{EvtPred}(e_{\mathit{src}},\, \mathit{received},\, t)$ \newline $\mathit{Val}_\rho(e_{\mathit{dst}},\, t) = \mathit{Val}_\rho(e_{\mathit{src}},\, t)$  \\[4pt]
+                       & $\mathit{EvtPred}(e_{\mathit{src}},\, \mathit{received},\, t)$ \newline $\mathit{Val}_\rho(e_{\mathit{dst}},\, t) = \mathit{Val}_\rho(e_{\mathit{src}},\, t)$                                                                      \\[4pt]
     $\mathit{insert}(t,\, e,\, v)$
                        & $t \in T$,\newline $e \in E,\ t_e = \text{Set}$,\newline $v \in V_{\text{nonset}}$
-                       & $\mathit{EvtPred}(e,\, \mathit{inserted},\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{ValBefore}_\rho(e,\, t) \cup \{v\}$  \\[4pt]
+                       & $\mathit{EvtPred}(e,\, \mathit{inserted},\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{ValBefore}_\rho(e,\, t) \cup \{v\}$                                                      \\[4pt]
     $\mathit{remove}(t,\, e,\, v)$
                        & $t \in T$,\newline $e \in E,\ t_e = \text{Set}$,\newline $v \in V_{\text{nonset}}$
-                       & $\mathit{EvtPred}(e,\, \mathit{removed},\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{ValBefore}_\rho(e,\, t) \setminus \{v\}$  \\[4pt]
+                       & $\mathit{EvtPred}(e,\, \mathit{removed},\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{ValBefore}_\rho(e,\, t) \setminus \{v\}$                                                  \\[4pt]
     $\mathit{clear}(t,\, e)$
                        & $t \in T$,\newline $e \in E,\ t_e = \text{Set}$
-                       & $\mathit{EvtPred}(e,\, \mathit{cleared},\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \emptyset$  \\
+                       & $\mathit{EvtPred}(e,\, \mathit{cleared},\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \emptyset$                                                                                        \\
     \bottomrule
 \end{tabularx}
 \medskip
@@ -663,21 +633,21 @@ The temporal constructs below build trace predicates from point-in-time predicat
 
 \begin{definition}[Temporal constructs]\label{def:temporal_constructs}
     \begin{align*}
-        \mathit{Always}(\psi) \;&\Leftrightarrow\; \forall t \in T:\; \psi(\rho, t) \\
-        \mathit{Eventually}(\psi) \;&\Leftrightarrow\; \exists t \in T:\; \psi(\rho, t) \\
-        \mathit{Initial}(\psi) \;&\Leftrightarrow\; \psi(\rho, 0) \\
-        \mathit{Causes}(\psi_{\mathit{cond}},\, \psi_{\mathit{effect}}) \;&\Leftrightarrow\;
-            \forall t \in T:\; \psi_{\mathit{cond}}(\rho, t) \Rightarrow \exists t' \geq t:\; \psi_{\mathit{effect}}(\rho, t') \\
-        \mathit{CausesWithin}(\psi_{\mathit{cond}},\, \psi_{\mathit{effect}},\, d) \;&\Leftrightarrow\;
-            \forall t \in T:\; \psi_{\mathit{cond}}(\rho, t) \Rightarrow \exists t' \in [t,\, t+d]:\; \psi_{\mathit{effect}}(\rho, t') \\
-        \mathit{Sequence}(\psi_1,\, \ldots,\, \psi_n) \;&\Leftrightarrow\;
-            \exists t_1 \leq t_2 \leq \cdots \leq t_n \in T:\; \psi_i(\rho,\, t_i) \text{ for all } i \\
-        \mathit{Precedes}(\psi_1,\, \psi_2) \;&\Leftrightarrow\;
-            \forall t_1 \in T:\; \psi_2(\rho,\, t_1) \Rightarrow \exists t_2 \leq t_1:\; \psi_1(\rho,\, t_2) \\
-        \mathit{Excludes}(\psi_1,\, \psi_2) \;&\Leftrightarrow\;
-            \forall t \in T:\; \lnot\bigl(\psi_1(\rho,\, t) \land \psi_2(\rho,\, t)\bigr) \\
-        \mathit{Immediately}(\psi_1,\, \psi_2) \;&\Leftrightarrow\;
-            \forall t_1 \in T:\; \psi_1(\rho,\, t_1) \Rightarrow \psi_2(\rho,\, \mathit{Next}(t_1))
+        \mathit{Always}(\psi) \;                                                      & \Leftrightarrow\; \forall t \in T:\; \psi(\rho, t) \\
+        \mathit{Eventually}(\psi) \;                                                  & \Leftrightarrow\; \exists t \in T:\; \psi(\rho, t) \\
+        \mathit{Initial}(\psi) \;                                                     & \Leftrightarrow\; \psi(\rho, 0)                    \\
+        \mathit{Causes}(\psi_{\mathit{cond}},\, \psi_{\mathit{effect}}) \;            & \Leftrightarrow\;
+        \forall t \in T:\; \psi_{\mathit{cond}}(\rho, t) \Rightarrow \exists t' \geq t:\; \psi_{\mathit{effect}}(\rho, t')                 \\
+        \mathit{CausesWithin}(\psi_{\mathit{cond}},\, \psi_{\mathit{effect}},\, d) \; & \Leftrightarrow\;
+        \forall t \in T:\; \psi_{\mathit{cond}}(\rho, t) \Rightarrow \exists t' \in [t,\, t+d]:\; \psi_{\mathit{effect}}(\rho, t')         \\
+        \mathit{Sequence}(\psi_1,\, \ldots,\, \psi_n) \;                              & \Leftrightarrow\;
+        \exists t_1 \leq t_2 \leq \cdots \leq t_n \in T:\; \psi_i(\rho,\, t_i) \text{ for all } i                                          \\
+        \mathit{Precedes}(\psi_1,\, \psi_2) \;                                        & \Leftrightarrow\;
+        \forall t_1 \in T:\; \psi_2(\rho,\, t_1) \Rightarrow \exists t_2 \leq t_1:\; \psi_1(\rho,\, t_2)                                   \\
+        \mathit{Excludes}(\psi_1,\, \psi_2) \;                                        & \Leftrightarrow\;
+        \forall t \in T:\; \lnot\bigl(\psi_1(\rho,\, t) \land \psi_2(\rho,\, t)\bigr)                                                      \\
+        \mathit{Immediately}(\psi_1,\, \psi_2) \;                                     & \Leftrightarrow\;
+        \forall t_1 \in T:\; \psi_1(\rho,\, t_1) \Rightarrow \psi_2(\rho,\, \mathit{Next}(t_1))
     \end{align*}
     where $\psi,\, \psi_{\mathit{cond}},\, \psi_{\mathit{effect}},\, \psi_1, \ldots, \psi_n \in \mathbf{Pred}$ are point-in-time predicates and $d \in \Delta$ is a duration bound.
 \end{definition}
