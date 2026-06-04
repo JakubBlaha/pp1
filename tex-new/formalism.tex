@@ -5,20 +5,11 @@
     \item \todo{Value transformations, like signed, etc.}
 \end{itemize}
 
-\subsection{The purpose of the formal base}
+This document defines a logic-agnostic formal base for expressing software requirements and test cases. It is intended as a close-to-natural-language intermediate representation that an LLM (or a human) can read and produce: its constructs, expressions, and predicates are named after the vocabulary already used when describing requirements informally, while each name is tied to a precise mathematical definition. Its purpose is to enable mechanical detection of coverage gaps: given a set of requirements and a set of test cases formalised over a shared set of entities, a checker determines which requirement conditions are not exercised by any test.
 
-This document defines a logic-agnostic formal base for expressing software requirements and test cases.
-The goal is to enable mechanical detection of coverage gaps: given a set of requirements and a set of test cases, the checker determines which requirement conditions are not exercised by any test.
+The base is organised into several layers, each building on the ones below it. At the bottom, a time set and a set of \emph{entities} (signals, storage, channels, states, events, and so on) describe the kinds of things present in the system, and a \emph{trace} assigns to each time point a valuation mapping entities to their current values. Built on top of traces, \emph{expressions} compute values and \emph{predicates} evaluate to truth values at a given point in time. \emph{Operations} are the actions a test case fires to drive a trace, each producing an effect predicate that states what must hold as a result of the firing. \emph{Temporal constructs} then lift point-in-time predicates into statements about the whole trace by quantifying over time.
 
-\subsection{The design principles of the formal base}
-
-The formalism is designed around these properties.
-
-\begin{itemize}
-    \item \textbf{extensibility} -- adding new entity kinds or operations must require only extending the entity type set $T_E$, the values set $V$, the entity type modifiers function $M_E$, and the entity type operations function $O_T$.
-    \item \textbf{matchability} -- a formalised requirement and a formalised test case must be expressed using the same \textbf{predicates}, so that the coverage checker can determine which truth assignments to those predicates are exercised by the tests and which logical combinations remain uncovered.
-    \item \textbf{ambient evaluation} -- every expression is implicitly a function of a trace $\rho$ and a current time $\mathit{Now}$. It is the surrounding temporal construct (e.g.\ $\mathit{Always}$, $\mathit{Causes}$, $\mathit{CausesWithin}$) that supplies $\mathit{Now}$ by quantifying over time; expressions and operations never take $\mathit{Now}$ as an explicit argument. This means the same expression can be reused inside different temporal constructs and its meaning changes solely by what the construct binds $\mathit{Now}$ to.
-\end{itemize}
+A requirement and a test case are both built from these same layers over the same entities, drawing their predicates from the same space; this shared vocabulary is what allows a checker to determine which conditions of a requirement a given test case exercises. The catalogues of entity kinds and operations are kept open to extension, so that supporting a new kind of entity or action requires only widening the relevant catalogue while every existing construct continues to work unchanged.
 
 \section{The primitives}
 
