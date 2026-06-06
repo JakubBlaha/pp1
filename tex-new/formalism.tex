@@ -122,13 +122,15 @@ Therefore we define the \textit{entity type modifiers function}.
     where $\mathit{ModKey}$ is a finite nonempty set of modifier keys.
     The permitted modifier keys and their expected value types are:
     \begin{center}
-        \begin{tabular}{lll}
+        \begin{tabular}{llll}
             \toprule
-            \textbf{Entity type} & \textbf{Modifier key} & \textbf{Value type}       \\
+            \textbf{Entity type} & \textbf{Modifier key}   & \textbf{Type}             & \textbf{Meaning} \\
             \midrule
-            \text{Storage}       & $\mathit{address}$    & $\mathbb{N}$              \\
-            \text{Event}         & $\mathit{target}$     & $\mathit{ID}_E$           \\
-            \text{Event}         & $\mathit{type}$       & $\mathit{EventTypeLabel}$ \\
+            \text{Storage}       & $\mathit{address}$      & $\mathbb{N}$              & Static memory address of the storage location \\
+            \text{Storage}       & $\mathit{register}$     & $\mathbb{B}$              & Storage is a hardware register \\
+            \text{Storage}       & $\mathit{non\_volatile}$& $\mathbb{B}$              & Storage retains its value across power cycles \\
+            \text{Event}         & $\mathit{target}$       & $\mathit{ID}_E$           & Entity whose activity this event tracks \\
+            \text{Event}         & $\mathit{type}$         & $\mathit{EventTypeLabel}$ & Kind of activity being tracked \\
             \bottomrule
         \end{tabular}
     \end{center}
@@ -174,7 +176,7 @@ Formally, an entity is defined as a three-item tuple.
 \section{Valuations and traces}
 
 \begin{definition}[Valuation]\label{def:valuation}
-    A valuation is a partial function $\sigma : E \rightharpoonup V$ assigning a value to a subset of entities at each time point\footnote{For instance a register entity can have its value undefined at time points preceeding a write to this register.}; $\sigma(e)$ is undefined when the entity has no defined value at that time point.
+    A valuation is a partial\footnote{For instance a register entity can have its value undefined at time points preceeding a write to this register.} function $\sigma : E \rightharpoonup V$ assigning a value to a subset of entities at each time point; $\sigma(e)$ is undefined when the entity has no defined value at that time point.
     For entities of type \texttt{Event}, $\sigma(e)$ is always defined and $\sigma(e) \in \{\mathit{true}, \mathit{false}\}$,
     where $\sigma(e) = \mathit{true}$ iff the event occurs at that time point.
     For entities of type \texttt{Set}, $\sigma(e)$, when defined, is a finite subset of $V_{\text{nonset}}$, i.e.\ $\sigma(e) \in \mathcal{P}_{\text{fin}}(V_{\text{nonset}})$.
@@ -213,13 +215,13 @@ We write $\mathbf{Expr}$ for the infinite set of all expressions.
 The following functions depend only on time points or intervals; they do not depend on a trace.
 
 \begin{definition}[Current time]\label{def:now}
-    $\mathit{Now} \in T$ returns the ambient time point $t$:
+    $\mathit{Now} \in T$ returns the ambient time point $t$\footnote{The ambient time point $t$ is the time point at which the enclosing predicate or expression is being evaluated; it is always in scope when constructing predicates and expressions.}:
     \[
         \mathit{Now} \;=\; t
     \]
 \end{definition}
 
-The following two functions are defined for \textbf{discrete time only} ($T = T_D = \mathbb{N}$).
+The following three functions are defined for \textbf{discrete time only} ($T = T_D = \mathbb{N}$).
 
 \begin{definition}[]\label{def:prev}
     $\mathit{Prev} : T_D \rightharpoonup T_D$ returns the preceding time step:
@@ -320,11 +322,16 @@ The following functions are defined for both time flavours.
 
 These expressions return static properties of entities and do not depend on the trace or time.
 
-\begin{definition}[Address]\label{def:addr}
-    For a \texttt{Storage} entity $e \in E$ carrying an address modifier, $\mathit{Addr} : E \rightarrow V$ returns the static address value:
-    \[
-        \mathit{Addr}(e) \;=\; \mu_e(\mathit{address})
-    \]
+\begin{definition}[Modifier accessors]\label{def:modifier_accessors}
+    The following functions expose modifier values as expressions:
+    \begin{align*}
+        \mathit{Addr}(e)         &\;=\; \mu_e(\mathit{address})     & &e \in E,\; t_e = \texttt{Storage} \\
+        \mathit{IsReg}(e)        &\;=\; \mu_e(\mathit{register})    & &e \in E,\; t_e = \texttt{Storage} \\
+        \mathit{IsNonVol}(e)     &\;=\; \mu_e(\mathit{non\_volatile})& &e \in E,\; t_e = \texttt{Storage} \\
+        \mathit{EvtTarget}(ev)   &\;=\; \mu_{ev}(\mathit{target})   & &ev \in E,\; t_{ev} = \texttt{Event} \\
+        \mathit{EvtType}(ev)     &\;=\; \mu_{ev}(\mathit{type})     & &ev \in E,\; t_{ev} = \texttt{Event}
+    \end{align*}
+    Each accessor is partial: undefined when the entity does not carry the respective modifier.
 \end{definition}
 
 \subsubsection{Trace functions}\label{subsec:trace}
@@ -400,7 +407,7 @@ The following functions additionally take a trace $\rho \in \Sigma^T$ and produc
 These functions operate on set values and do not depend on a trace.
 
 \begin{definition}[Set size]\label{def:size}
-    $\mathit{Size} : \mathcal{P}_{\text{fin}}(V_{\text{nonset}}) \rightarrow \mathbb{N}$ returns the cardinality of a set:
+    $\mathit{Size} : \mathcal{P}_{\text{fin}}(V_{\text{nonset}}) \rightarrow \mathbb{N}$ returns the cardinality of a set\footnote{$\mathcal{P}_{\text{fin}}(S)$ denotes the set of all finite subsets of $S$.}:
     \[
         \mathit{Size}(s) \;=\; |s|
     \]
@@ -408,7 +415,7 @@ These functions operate on set values and do not depend on a trace.
 
 \begin{definition}[Set filter]\label{def:filter}
     For a set $s \in \mathcal{P}_{\text{fin}}(V_{\text{nonset}})$ and a predicate $P$ parameterised by $x \in V_{\text{nonset}}$,
-    $\mathit{Filter} : \mathcal{P}_{\text{fin}}(V_{\text{nonset}}) \times \mathbf{Pred} \rightarrow \mathcal{P}_{\text{fin}}(V_{\text{nonset}})$ returns the subset of elements satisfying $P$:
+    $\mathit{Filter} : \mathcal{P}_{\text{fin}}(V_{\text{nonset}}) \times \mathbf{Pred} \rightarrow \mathcal{P}_{\text{fin}}(V_{\text{nonset}})$ returns the subset of elements satisfying $P$\footnote{$\mathbf{Pred}$ is the set of all predicates, defined formally in Section~\ref{subsec:predicates}.}:
     \[
         \mathit{Filter}(s,\, P) \;=\; \{\, x \in s \mid P(x) \,\}
     \]
@@ -530,8 +537,8 @@ The operation is applied to some entity, which means that the argument list of e
     \[
         op : T \times E \times A_1 \times \cdots \times A_n \rightarrow \mathbf{Pred}
     \]
-    for some $n \geq 0$ and additional argument types $A_i \subseteq V \cup E$, where $T$ is the time set and $E$ is the mandatory target entity.
-    The predicate $op(t,\, e,\, a_1,\, \ldots,\, a_n)$ is the \emph{effect} of $op$ applied to entity $e$ at time $t$ -- it describes the condition that the operation causes to hold.
+    for some $n \geq 0$ and additional argument types $A_i \subseteq V$, where $T$ is the time set and $E$ is the mandatory target entity.
+    The result of $op(t,\, e,\, a_1,\, \ldots,\, a_n)$ is the \emph{effect} of $op$ applied to entity $e$ at time $t$ -- it describes the condition that the operation causes to hold.
     The trigger condition that invokes an operation is specified at the requirement level.
     We write $O$ for the finite set of all operations.
 \end{definition}
@@ -669,7 +676,7 @@ A test case exercises a subset of the same entities to produce a concrete trace,
         \item $t \in T$ is the firing time
         \item $op \in O$ is an operation
         \item $e \in E$ is the target entity
-        \item $a_1, \ldots, a_n \in V \cup E$ are the additional arguments required by $op$
+        \item $a_1, \ldots, a_n \in V$ are the additional arguments required by $op$
     \end{itemize}
     We write $\mathbf{Stim}$ for the set of all well-typed stimuli.
 \end{definition}
@@ -682,3 +689,33 @@ A test case exercises a subset of the same entities to produce a concrete trace,
         \item $\mathit{assertions} : T \to \mathcal{P}(\mathbf{Pred})$ maps each time point to the set of point-in-time predicates the test verifies at that time; it has finite support
     \end{itemize}
 \end{definition}
+
+\section*{List of symbols}
+
+\begin{center}
+    \begin{tabular}{ll|ll}
+        \toprule
+        \textbf{Symbol} & \textbf{Name} & \textbf{Symbol} & \textbf{Name} \\
+        \midrule
+        $T_D$                          & Discrete time set                          & $T_E$                        & Entity type set \\
+        $T_C$                          & Continuous time set                        & $\mathit{ModKey}$            & Set of modifier keys \\
+        $T$                            & Time set ($T_D$ or $T_C$)                  & $\mathit{ModVal}$            & Modifier value set \\
+        $\Delta$                       & Duration set                               & $M_E$                        & Entity type modifiers function \\
+        $\mathcal{I}$                  & Set of all intervals                       & $E$                          & Set of all entities \\
+        $\mathit{ID}_E$                & Entity identifier set                      & $e$                          & An entity \\
+        $\mathbb{B}$                   & Booleans $\{\mathit{true}, \mathit{false}\}$ & $id_e$                     & Entity identifier \\
+        $\mathbb{R}$                   & Real numbers                               & $t_e$                        & Entity type \\
+        $\mathbb{N}$                   & Natural numbers                            & $\mu_e$                      & Modifier assignment function \\
+        $V_{\text{base}}$              & Base values set                            & $\Sigma$                     & Set of all valuations \\
+        $V_{\text{nonset}}$            & Non-set values                             & $\sigma$                     & A valuation ($E \rightharpoonup V$) \\
+        $V$                            & Values set (includes finite sets)          & $\Sigma^T$                   & Set of all traces \\
+        $\mathit{EventTypeLabel}$      & Set of event type labels                   & $\rho$                       & A trace ($T \to \Sigma$) \\
+        $\mathbf{Expr}$                & Set of all expressions                     & $O$                          & Set of all operations \\
+        $\mathbf{Pred}$                & Set of all point-in-time predicates        & $O_T$                        & Entity type operations function \\
+        $\mathbf{TracePred}$           & Set of all trace predicates                & $\mathbf{Stim}$              & Set of all well-typed stimuli \\
+        $R$                            & A requirement                              & $\rho \models R$             & Trace satisfies requirement \\
+        $\mathit{Val}_\rho(e,t)$       & Value of entity $e$ at time $t$            & $\mathit{ValBefore}_\rho(e,t)$ & Left-limit value of entity $e$ \\
+        $\top$                         & Always-true predicate                      & $\bot$                       & Always-false predicate \\
+        \bottomrule
+    \end{tabular}
+\end{center}

@@ -1,3 +1,19 @@
+# 6 Jun 2026
+
+## Changes
+
+- Fixed Stimulus definition: `op` was described as "an operation name from the operations table"; changed to `op ∈ O is an operation`, consistent with Definition [Operation].
+- Added `register : B` and `non_volatile : B` as modifier keys for `Storage` entities to the $M_E$ table, which were used in examples but missing from the table.
+- Added a Meaning column to the $M_E$ modifier table with a brief natural-language description of each modifier key.
+- Renamed the "Value type" column in the $M_E$ table to "Type".
+- Replaced the standalone `Addr` definition with a unified Definition [Modifier accessors] covering all five modifier keys: `Addr`, `IsReg`, `IsNonVol`, `EvtTarget`, `EvtType`.
+- Simplified operation argument types from `A_i ⊆ V ∪ E` to `A_i ⊆ V` in both the Operation definition and the Stimulus definition, since $E \subset V$ via $V_{\text{nonset}}$.
+- Fixed "the following two functions are defined for discrete time only" to "three" (`Prev`, `Next`, `RelTime`).
+- Added footnote to `Now` clarifying what "ambient time point" means.
+- Added footnote to `Size` explaining $\mathcal{P}_{\text{fin}}(S)$ notation.
+- Added footnote to `Filter` noting that `Pred` is defined formally in the Predicates subsection (forward reference).
+- Added a List of Symbols section at the end of the document — a two-column table mapping mathematical symbols to their natural-language names.
+
 # 20 May 2026 (session 2)
 
 ## Changes
