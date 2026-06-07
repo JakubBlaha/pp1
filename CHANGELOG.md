@@ -13,6 +13,8 @@
 - Added footnote to `Size` explaining $\mathcal{P}_{\text{fin}}(S)$ notation.
 - Added footnote to `Filter` noting that `Pred` is defined formally in the Predicates subsection (forward reference).
 - Added a List of Symbols section at the end of the document — a two-column table mapping mathematical symbols to their natural-language names.
+- Added binary set operators `Union(s₁, s₂)`, `Intersection(s₁, s₂)`, `Difference(s₁, s₂)` (defined as $\cup$, $\cap$, $\setminus$) as set-valued expressions in the Set functions subsection.
+- Added set-relation predicates `IsEmpty(s)` ($s = \emptyset$), `Subset(s₁, s₂)` / `Superset(s₁, s₂)` ($\subseteq$ / $\supseteq$), and `Disjoint(s₁, s₂)` ($s_1 \cap s_2 = \emptyset$). Set equality is left to `Cmp` with `=`/`≠`.
 
 # 20 May 2026 (session 2)
 

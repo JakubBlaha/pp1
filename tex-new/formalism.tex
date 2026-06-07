@@ -421,6 +421,18 @@ These functions operate on set values and do not depend on a trace.
     \]
 \end{definition}
 
+\begin{definition}[Set union, intersection, and difference]\label{def:set_ops}
+    For sets $s_1, s_2 \in \mathcal{P}_{\text{fin}}(V_{\text{nonset}})$, the binary set operators
+    $\mathit{Union},\, \mathit{Intersection},\, \mathit{Difference} : \mathcal{P}_{\text{fin}}(V_{\text{nonset}}) \times \mathcal{P}_{\text{fin}}(V_{\text{nonset}}) \rightarrow \mathcal{P}_{\text{fin}}(V_{\text{nonset}})$
+    are defined in the usual set-theoretic sense:
+    \begin{align*}
+        \mathit{Union}(s_1,\, s_2)        & \;=\; s_1 \cup s_2      \\
+        \mathit{Intersection}(s_1,\, s_2) & \;=\; s_1 \cap s_2      \\
+        \mathit{Difference}(s_1,\, s_2)   & \;=\; s_1 \setminus s_2
+    \end{align*}
+    Each result is again a finite subset of $V_{\text{nonset}}$, so set operations may be freely nested.
+\end{definition}
+
 \subsection{Predicates}\label{subsec:predicates}
 
 A predicate is a function that evaluates to a value in $\mathbb{B}$.
@@ -443,6 +455,29 @@ We write $\mathbf{Pred}$ for the infinite set of all predicates.
     For a value $v \in V_{\text{nonset}}$ and a set value $s \in \mathcal{P}_{\text{fin}}(V_{\text{nonset}})$:
     \[
         \mathit{Contains}(v,\, s) \;\Leftrightarrow\; v \in s
+    \]
+\end{definition}
+
+\begin{definition}[Set emptiness]\label{def:pred_empty}
+    For a set value $s \in \mathcal{P}_{\text{fin}}(V_{\text{nonset}})$:
+    \[
+        \mathit{IsEmpty}(s) \;\Leftrightarrow\; s = \emptyset
+    \]
+\end{definition}
+
+\begin{definition}[Subset and superset]\label{def:pred_subset}
+    For set values $s_1, s_2 \in \mathcal{P}_{\text{fin}}(V_{\text{nonset}})$:
+    \[
+        \mathit{Subset}(s_1,\, s_2) \;\Leftrightarrow\; s_1 \subseteq s_2
+        \qquad
+        \mathit{Superset}(s_1,\, s_2) \;\Leftrightarrow\; s_1 \supseteq s_2
+    \]
+\end{definition}
+
+\begin{definition}[Set disjointness]\label{def:pred_disjoint}
+    For set values $s_1, s_2 \in \mathcal{P}_{\text{fin}}(V_{\text{nonset}})$:
+    \[
+        \mathit{Disjoint}(s_1,\, s_2) \;\Leftrightarrow\; s_1 \cap s_2 = \emptyset
     \]
 \end{definition}
 
