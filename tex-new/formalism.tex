@@ -346,12 +346,17 @@ The following functions additionally take a trace $\rho \in \Sigma^T$ and produc
     The function is partial: $\mathit{Val}_\rho(e,\, t)$ is undefined when $e \notin \mathrm{dom}(\rho(t))$.
 \end{definition}
 
-\begin{definition}[Value before time point]\label{def:val_before}
-    For a trace $\rho \in \Sigma^T$, the partial function $\mathit{ValBefore}_\rho : E \times T \rightharpoonup V$ is the left limit of the value of $e$ at $t$:
+\begin{definition}[Value after time point]\label{def:val_after}
+    For a trace $\rho \in \Sigma^T$, the partial function $\mathit{ValAfter}_\rho : E \times T \rightharpoonup V$ is the value of $e$ immediately after $t$:
     \[
-        \mathit{ValBefore}_\rho(e,\, t) \;=\; \lim_{t' \to t^-} \mathit{Val}_\rho(e,\, t')
+        \mathit{ValAfter}_\rho(e,\, t) \;=\; \begin{cases}
+            \mathit{Val}_\rho(e,\, \mathit{Next}(t))       & \text{if } T = T_D \\
+            \lim_{t' \to t^+} \mathit{Val}_\rho(e,\, t') & \text{if } T = T_C
+        \end{cases}
     \]
-    The function is partial: it is undefined when the left limit does not exist, i.e.\ when no operation has fired on $e$ before $t$.
+    The function is partial: it is undefined when the value of $e$ is undefined at $\mathit{Next}(t)$ (discrete time) or when the right limit does not exist (continuous time).
+
+    \textit{Note:} Since the effects of an operation fired at $t$ become visible strictly after $t$ (Section~\ref{sec:operations}), $\mathit{Val}_\rho(e,\, t)$ at a firing time is the value \emph{before} the operation and $\mathit{ValAfter}_\rho(e,\, t)$ is the value \emph{after} it.
 \end{definition}
 
 \begin{definition}[Event occurrence count]\label{def:evt_occ_count}
@@ -561,7 +566,7 @@ Since $\Delta \subseteq \mathbb{R}$, duration comparison is a special case of $\
     \]
 \end{definition}
 
-\section{Operations}
+\section{Operations}\label{sec:operations}
 
 An operation is an action that the system performs at a specific point in time.
 Each operation has a set of arguments and produces \emph{effect predicates} — a formal statement, parameterised by the firing time $t$, of what must hold in the trace as a result of the operation being performed.
@@ -586,6 +591,11 @@ The operation is applied to some entity, which means that the argument list of e
 \end{definition}
 
 The concrete mapping, including argument types and effects, is as follows.
+
+Effects on values take hold strictly after the firing time, following the convention of the Event Calculus: an operation fired at $t$ determines the value of its target on $(t,\, t_{\mathit{next}}]$, while at $t$ itself $\mathit{Val}_\rho(e,\, t)$ still yields the value before the operation.
+Consequently, expressions in arguments are evaluated in the state before the operation, and the value after the operation is obtained via $\mathit{ValAfter}_\rho(e,\, t)$ (Definition~\ref{def:val_after}).
+Events, in contrast, occur at the firing time itself: $\mathit{EvtPred}(e,\, ek,\, t)$ makes the event hold at $t$.
+
 In effect predicates, $t_{\mathit{next}}$ denotes the next time \emph{any} value-modifying operation fires on entity $e$ after $t$, or $\infty$ if no such firing occurs:
 
 \[
@@ -613,34 +623,34 @@ i.e.\ every \texttt{Event} entity declared with the matching $\mathit{target}$ a
     \midrule
     $\mathit{calculate}(t,\, e,\, \mathit{expr})$
                        & $t \in T$,\newline $e \in E,\ t_e = \text{Signal}$,\newline $\mathit{expr} \in \mathbf{Expr}$
-                       & $\mathit{EvtPred}(e,\, \mathit{calculated},\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$                                                                      \\[4pt]
+                       & $\mathit{EvtPred}(e,\, \mathit{calculated},\, t)$ \newline $\forall t' \in (t,\, t_{\mathit{next}}]:\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$                                                                      \\[4pt]
     $\mathit{write}(t,\, e,\, \mathit{expr})$
                        & $t \in T$,\newline $e \in E,\ t_e = \text{Storage}$,\newline $\mathit{expr} \in \mathbf{Expr}$
-                       & $\mathit{EvtPred}(e,\, \mathit{written},\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$                                                                         \\[4pt]
+                       & $\mathit{EvtPred}(e,\, \mathit{written},\, t)$ \newline $\forall t' \in (t,\, t_{\mathit{next}}]:\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$                                                                         \\[4pt]
     $\mathit{read}(t,\, e_{\mathit{src}},\, e_{\mathit{dst}})$
                        & $t \in T$,\newline $e_{\mathit{src}} \in E,\ t_{e_{\mathit{src}}} = \text{Storage}$,\newline $e_{\mathit{dst}} \in E,\ t_{e_{\mathit{dst}}} = \text{Signal}$
-                       & $\mathit{EvtPred}(e_{\mathit{src}},\, \mathit{read},\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e_{\mathit{dst}},\, t') = \mathit{Val}_\rho(e_{\mathit{src}},\, t)$                              \\[4pt]
+                       & $\mathit{EvtPred}(e_{\mathit{src}},\, \mathit{read},\, t)$ \newline $\forall t' \in (t,\, t_{\mathit{next}}]:\; \mathit{Val}_\rho(e_{\mathit{dst}},\, t') = \mathit{Val}_\rho(e_{\mathit{src}},\, t)$                              \\[4pt]
     $\mathit{fire}(t,\, e)$
                        & $t \in T$, $e \in E,\ t_e = \text{EventTrigger}$
                        & $\mathit{EvtPred}(e,\, \mathit{generic},\, t)$                                                                                                                                                                                     \\[4pt]
     $\mathit{set\_state}(t,\, e,\, s)$
                        & $t \in T$,\newline $e \in E,\ t_e = \text{State}$,\newline $s \in V$
-                       & $\mathit{EvtPred}(e,\, \mathit{entered},\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = s$                                                                                                \\[4pt]
+                       & $\mathit{EvtPred}(e,\, \mathit{entered},\, t)$ \newline $\forall t' \in (t,\, t_{\mathit{next}}]:\; \mathit{Val}_\rho(e,\, t') = s$                                                                                                \\[4pt]
     $\mathit{transmit}(t,\, e,\, \mathit{expr})$
                        & $t \in T$,\newline $e \in E,\ t_e = \text{Channel}$,\newline $\mathit{expr} \in \mathbf{Expr}$
-                       & $\mathit{EvtPred}(e,\, \mathit{transmitted},\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$                                                                     \\[4pt]
+                       & $\mathit{EvtPred}(e,\, \mathit{transmitted},\, t)$ \newline $\forall t' \in (t,\, t_{\mathit{next}}]:\; \mathit{Val}_\rho(e,\, t') = \mathit{expr}(\rho,\, t)$                                                                     \\[4pt]
     $\mathit{receive}(t,\, e_{\mathit{src}},\, e_{\mathit{dst}})$
                        & $t \in T$,\newline $e_{\mathit{src}} \in E,\ t_{e_{\mathit{src}}} = \text{Channel}$,\newline $e_{\mathit{dst}} \in E,\ t_{e_{\mathit{dst}}} = \text{Signal}$
-                       & $\mathit{EvtPred}(e_{\mathit{src}},\, \mathit{received},\, t)$ \newline $\mathit{Val}_\rho(e_{\mathit{dst}},\, t) = \mathit{Val}_\rho(e_{\mathit{src}},\, t)$                                                                      \\[4pt]
+                       & $\mathit{EvtPred}(e_{\mathit{src}},\, \mathit{received},\, t)$ \newline $\forall t' \in (t,\, t_{\mathit{next}}]:\; \mathit{Val}_\rho(e_{\mathit{dst}},\, t') = \mathit{Val}_\rho(e_{\mathit{src}},\, t)$                                                                      \\[4pt]
     $\mathit{insert}(t,\, e,\, v)$
                        & $t \in T$,\newline $e \in E,\ t_e = \text{Set}$,\newline $v \in V_{\text{nonset}}$
-                       & $\mathit{EvtPred}(e,\, \mathit{inserted},\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{ValBefore}_\rho(e,\, t) \cup \{v\}$                                                      \\[4pt]
+                       & $\mathit{EvtPred}(e,\, \mathit{inserted},\, t)$ \newline $\forall t' \in (t,\, t_{\mathit{next}}]:\; \mathit{Val}_\rho(e,\, t') = \mathit{Val}_\rho(e,\, t) \cup \{v\}$                                                      \\[4pt]
     $\mathit{remove}(t,\, e,\, v)$
                        & $t \in T$,\newline $e \in E,\ t_e = \text{Set}$,\newline $v \in V_{\text{nonset}}$
-                       & $\mathit{EvtPred}(e,\, \mathit{removed},\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \mathit{ValBefore}_\rho(e,\, t) \setminus \{v\}$                                                  \\[4pt]
+                       & $\mathit{EvtPred}(e,\, \mathit{removed},\, t)$ \newline $\forall t' \in (t,\, t_{\mathit{next}}]:\; \mathit{Val}_\rho(e,\, t') = \mathit{Val}_\rho(e,\, t) \setminus \{v\}$                                                  \\[4pt]
     $\mathit{clear}(t,\, e)$
                        & $t \in T$,\newline $e \in E,\ t_e = \text{Set}$
-                       & $\mathit{EvtPred}(e,\, \mathit{cleared},\, t)$ \newline $\forall t' \in [t,\, t_{\mathit{next}}):\; \mathit{Val}_\rho(e,\, t') = \emptyset$                                                                                        \\
+                       & $\mathit{EvtPred}(e,\, \mathit{cleared},\, t)$ \newline $\forall t' \in (t,\, t_{\mathit{next}}]:\; \mathit{Val}_\rho(e,\, t') = \emptyset$                                                                                        \\
     \bottomrule
 \end{tabularx}
 \medskip
@@ -749,7 +759,7 @@ A test case exercises a subset of the same entities to produce a concrete trace,
         $\mathbf{Pred}$                & Set of all point-in-time predicates        & $O_T$                        & Entity type operations function \\
         $\mathbf{TracePred}$           & Set of all trace predicates                & $\mathbf{Stim}$              & Set of all well-typed stimuli \\
         $R$                            & A requirement                              & $\rho \models R$             & Trace satisfies requirement \\
-        $\mathit{Val}_\rho(e,t)$       & Value of entity $e$ at time $t$            & $\mathit{ValBefore}_\rho(e,t)$ & Left-limit value of entity $e$ \\
+        $\mathit{Val}_\rho(e,t)$       & Value of entity $e$ at time $t$            & $\mathit{ValAfter}_\rho(e,t)$ & Value of entity $e$ just after $t$ \\
         $\top$                         & Always-true predicate                      & $\bot$                       & Always-false predicate \\
         \bottomrule
     \end{tabular}

@@ -1,3 +1,13 @@
+# 3 Oct 2026
+
+## Changes
+
+- Adopted the Event Calculus timing convention: an operation fired at $t$ determines the value of its target on $(t, t_{next}]$ instead of $[t, t_{next})$. At the firing time itself, `Val_ρ(e, t)` still yields the value before the operation; events still occur at $t$. Stated in a new paragraph of the Operations section.
+- Removed `ValBefore_ρ(e, t)` (left limit): under the new convention `Val_ρ(e, t)` at a firing time already yields the value before the operation, so `insert`/`remove` effects and the examples now use `Val_ρ(e, t)` instead.
+- Added `ValAfter_ρ(e, t)` for the value after an operation fired at `t`, which `Val_ρ(e, t)` no longer yields: `Val_ρ(e, Next(t))` in discrete time, the right limit in continuous time.
+- `receive` now has the same persistent effect on $(t, t_{next}]$ as `read`, consistent with being listed as value-modifying.
+- Updated examples that read a value at a write time (Req 02, 03, 05, 07, 09) to use `ValAfter_ρ` for the written value.
+
 # 6 Jun 2026
 
 ## Changes
