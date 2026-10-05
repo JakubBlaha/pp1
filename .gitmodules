@@ -1,0 +1,3 @@
+[submodule "pp1-parser"]
+	path = pp1-parser
+	url = git@github.com:JakubBlaha/pp1-parser.git
