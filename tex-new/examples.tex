@@ -368,7 +368,7 @@ $\mathit{valid\_range}$ is assumed boolean; $\lnot$ denotes boolean negation.
 
 \subsection{Req 13 -- Bounded count of large register values}
 
-\textbf{Requirement:} The number of values larger than 10 in the four registers A, B, C, D when they are read at the same timestep is never greater than 2.
+\textbf{Requirement:} The number of values larger than 10 in the four registers A, B, C, D in different cores, when they are written in parallel at the same timestep, is never greater than 2.
 
 \medskip
 \begin{center}
@@ -380,10 +380,10 @@ $\mathit{valid\_range}$ is assumed boolean; $\lnot$ denotes boolean negation.
     $B$ & Storage & $\{\mathit{register} \mapsto \top\}$ \\
     $C$ & Storage & $\{\mathit{register} \mapsto \top\}$ \\
     $D$ & Storage & $\{\mathit{register} \mapsto \top\}$ \\
-    $\mathit{ev\_read\_A}$ & Event & $\{\mathit{target} \mapsto id_A,\ \mathit{type} \mapsto \mathit{read}\}$ \\
-    $\mathit{ev\_read\_B}$ & Event & $\{\mathit{target} \mapsto id_B,\ \mathit{type} \mapsto \mathit{read}\}$ \\
-    $\mathit{ev\_read\_C}$ & Event & $\{\mathit{target} \mapsto id_C,\ \mathit{type} \mapsto \mathit{read}\}$ \\
-    $\mathit{ev\_read\_D}$ & Event & $\{\mathit{target} \mapsto id_D,\ \mathit{type} \mapsto \mathit{read}\}$ \\
+    $\mathit{ev\_written\_A}$ & Event & $\{\mathit{target} \mapsto id_A,\ \mathit{type} \mapsto \mathit{written}\}$ \\
+    $\mathit{ev\_written\_B}$ & Event & $\{\mathit{target} \mapsto id_B,\ \mathit{type} \mapsto \mathit{written}\}$ \\
+    $\mathit{ev\_written\_C}$ & Event & $\{\mathit{target} \mapsto id_C,\ \mathit{type} \mapsto \mathit{written}\}$ \\
+    $\mathit{ev\_written\_D}$ & Event & $\{\mathit{target} \mapsto id_D,\ \mathit{type} \mapsto \mathit{written}\}$ \\
     \bottomrule
 \end{tabular}
 \end{center}
@@ -392,24 +392,26 @@ $\mathit{valid\_range}$ is assumed boolean; $\lnot$ denotes boolean negation.
 
 \textbf{Constraint:}
 
-Let $\mathit{regs} = \{A,\, B,\, C,\, D\} \in \mathcal{P}_{\text{fin}}(V_{\text{nonset}})$ be the set of register entities.
-Both the antecedent and the consequent quantify over $\mathit{regs}$:
+Let $\mathit{regs} = \{A,\, B,\, C,\, D\}$ be the set of register entities and $\mathit{writes} = \{\mathit{ev\_written\_A},\, \mathit{ev\_written\_B},\, \mathit{ev\_written\_C},\, \mathit{ev\_written\_D}\}$ the set of their write events, both in $\mathcal{P}_{\text{fin}}(V_{\text{nonset}})$.
+The antecedent quantifies over $\mathit{writes}$, the consequent over $\mathit{regs}$:
 
 \begin{align*}
     \mathit{Always}\Bigl(
-        &\mathit{ForAll}\bigl(\mathit{regs},\;
-            \lambda e.\; \mathit{Happening}(e,\, \mathit{read},\, \mathit{Now})\bigr) \\
+        &\mathit{ForAll}\bigl(\mathit{writes},\;
+            \lambda \mathit{ev}.\; \mathit{Happening}(\mathit{ev},\, \mathit{Now})\bigr) \\
         &\Rightarrow \mathit{Cmp}\Bigl(
             \mathit{Size}\bigl(
                 \mathit{Filter}\bigl(\mathit{regs},\;
-                    \lambda e.\; \mathit{Val}_\rho(e,\, \mathit{Now}) > 10\bigr)
+                    \lambda e.\; \mathit{ValAfter}_\rho(e,\, \mathit{Now}) > 10\bigr)
             \bigr),\; \leq,\; 2
         \Bigr)
     \Bigr)
 \end{align*}
 
-The antecedent holds at time $t$ iff all four registers are read simultaneously.
-The consequent builds the set of registers whose value exceeds 10 and asserts its cardinality is at most 2.
+The antecedent holds at time $t$ iff all four registers are written at $t$.
+The consequent builds the set of registers whose written value exceeds 10 and asserts its cardinality is at most 2.
+$\mathit{ValAfter}_\rho$ reads the written values: at a write time, $\mathit{Val}_\rho$ still yields the value before the write.
+``In different cores'' has no counterpart in the formalism and does not change the condition.
 
 \subsection{Req 10 -- Repeated failure triggers emergency mode}
 

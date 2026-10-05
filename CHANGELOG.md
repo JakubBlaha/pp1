@@ -1,3 +1,10 @@
+# 5 Oct 2026
+
+## Changes
+
+- Req 13 example: updated to the current requirement text in `req/13.custom.md`, which speaks of the registers being *written* in parallel, not read. The entity table now declares the write events `ev_written_A` … `ev_written_D`, and the consequent checks the written values with `ValAfter_ρ`.
+- Req 13 example: the antecedent used `Happening(e, read, Now)` with three arguments over the register entities, which the formalism does not define. It now quantifies over the Event entities: `ForAll(writes, λev. Happening(ev, Now))`.
+
 # 3 Oct 2026
 
 ## Changes
