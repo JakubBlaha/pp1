@@ -33,7 +33,7 @@ Before adding semantics to the formalism, ask: does the coverage checker need th
 
 Every problem found in the formalism, the examples, the test cases, the Event Calculus translation or the parser is tracked in `problems/` and shown by the web app `problems/index.html`. The format is described in `problems/README.md`.
 
-- **A new problem is found:** add a file to `problems/items/` in the same turn. List every affected requirement and test case, link its causes (`caused-by`), state whether it is in the way of the Event Calculus translation (`ec`: blocker, work, tooling or none) and why (`ec-why`), and propose at least one solution: a new solution file, or an existing solution extended with `solves`.
+- **A new problem is found:** use the `add-problem` skill (`.claude/skills/add-problem/SKILL.md`). In short: add a file to `problems/items/` in the same turn. List every affected requirement and test case, link its causes (`caused-by`), state whether it is in the way of the Event Calculus translation (`ec`: blocker, work, tooling or none) and why (`ec-why`), and propose at least one solution: a new solution file, or an existing solution extended with `solves`.
 - **The first goal is the translation to the Event Calculus.** The app's start page shows what blocks it; keep `ec` and `ec-why` accurate when a problem changes.
 - **A problem is fixed, or turns out not to be one:** update its status (and the solution's). Do not delete it.
 - **After every change:** run `python3 problems/build.py`. It must finish without errors and without "no proposed solution" warnings.
