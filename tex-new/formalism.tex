@@ -713,7 +713,11 @@ A requirement is a formal constraint on the system's behaviour, expressed as a t
     A trace $\rho$ \emph{satisfies} $R$ (written $\rho \models R$) iff $\mathit{constraint}(\rho) = \mathit{true}$.
 \end{definition}
 
-A test case exercises a subset of the same entities to produce a concrete trace, which the coverage checker then analyses against the requirement's constraint.
+A test case drives the system through its setup and its stimuli, and states the expected outcome in its assertions.
+It does not determine a single trace: the setup fixes the values of some entities at time $0$, each stimulus fixes what its effect predicate states, and everything else, in particular how the software responds, is left open.
+A test case therefore stands for the set of all traces it allows, and its assertions select the traces it expects (Definition~\ref{def:test_traces}).
+For instance, a test that fires two sensor failures 9 seconds apart allows traces in which the software enters emergency mode after the second failure, traces in which it does so later, and traces in which it never does; its assertion expects the first.
+The coverage checker analyses these sets of traces against the requirement's constraint.
 
 \begin{definition}[Stimulus]\label{def:stimulus}
     A \emph{stimulus} is a tuple $(t,\, op,\, e,\, a_1,\, \ldots,\, a_n)$ where:
@@ -733,6 +737,22 @@ A test case exercises a subset of the same entities to produce a concrete trace,
         \item $\mathit{stimuli} \in \mathcal{P}_{\mathrm{fin}}(\mathbf{Stim})$ is a finite set of stimuli
         \item $\mathit{assertions} : T \to \mathcal{P}(\mathbf{Pred})$ maps each time point to the set of point-in-time predicates the test verifies at that time; it has finite support
     \end{itemize}
+\end{definition}
+
+\begin{definition}[Traces of a test case]\label{def:test_traces}
+    For a test case $\mathit{TC} = (\sigma_0,\, \mathit{stimuli},\, \mathit{assertions})$, the set of traces it \emph{allows} is
+    \[
+        \begin{aligned}
+            \mathit{Traces}(\mathit{TC}) = \bigl\{\, \rho \in \Sigma^T \;\bigm|\; & \forall e \in \mathrm{dom}(\sigma_0):\; \mathit{Val}_\rho(e,\, 0) = \sigma_0(e), \text{ and}                         \\
+                                                                            & \forall (t,\, op,\, e,\, a_1, \ldots, a_n) \in \mathit{stimuli}:\; op(t,\, e,\, a_1, \ldots, a_n)(\rho,\, t) \,\bigr\}
+        \end{aligned}
+    \]
+    i.e.\ the traces that agree with the setup at time $0$ and in which the effect predicate of every stimulus holds.
+    The set of traces it \emph{expects} is
+    \[
+        \mathit{Expected}(\mathit{TC}) = \bigl\{\, \rho \in \mathit{Traces}(\mathit{TC}) \;\bigm|\; \forall t \in T,\ \forall \psi \in \mathit{assertions}(t):\; \psi(\rho,\, t) \,\bigr\}
+    \]
+    i.e.\ the allowed traces in which every assertion holds at its time point.
 \end{definition}
 
 \section*{List of symbols}
@@ -761,6 +781,7 @@ A test case exercises a subset of the same entities to produce a concrete trace,
         $R$                            & A requirement                              & $\rho \models R$             & Trace satisfies requirement \\
         $\mathit{Val}_\rho(e,t)$       & Value of entity $e$ at time $t$            & $\mathit{ValAfter}_\rho(e,t)$ & Value of entity $e$ just after $t$ \\
         $\top$                         & Always-true predicate                      & $\bot$                       & Always-false predicate \\
+        $\mathit{Traces}(\mathit{TC})$ & Traces a test case allows                  & $\mathit{Expected}(\mathit{TC})$ & Traces a test case expects \\
         \bottomrule
     \end{tabular}
 \end{center}

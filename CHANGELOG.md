@@ -1,3 +1,10 @@
+# 6 Oct 2026
+
+## Changes
+
+- Test cases: replaced "A test case exercises a subset of the same entities to produce a concrete trace" with a paragraph saying that a test case stands for the set of all traces it allows, and that its assertions select the traces it expects. Setup and stimuli fix only some values; the software's response is left open.
+- Added Definition [Traces of a test case]: `Traces(TC)` is the set of traces that agree with the setup at time 0 and satisfy the effect predicate of every stimulus; `Expected(TC)` is the subset in which every assertion holds at its time point. Both added to the List of symbols.
+
 # 5 Oct 2026
 
 ## Changes

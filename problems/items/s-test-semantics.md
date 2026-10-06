@@ -2,11 +2,11 @@
 id: s-test-semantics
 kind: solution
 title: Define a test case as the set of traces it allows
-status: proposed
+status: applied
 solves: test-set-of-traces
 ---
 ## Summary
-Replace "a test case produces a concrete trace" by a definition of all the traces a test case allows.
+Replace "a test case produces a concrete trace" by a definition of all the traces a test case allows. Applied on 6 Oct 2026 as Definition "Traces of a test case" in `tex-new/formalism.tex`, which also defines $\mathit{Expected}(\mathit{TC})$.
 
 ## Change
 In `formalism.tex`, Section "Requirements & Test cases", define

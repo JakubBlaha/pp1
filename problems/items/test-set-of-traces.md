@@ -2,11 +2,11 @@
 id: test-set-of-traces
 title: A test case does not produce one trace
 parent: cat-tests
-status: open
+status: resolved
 severity: major
 found: 2026-10-04
 ec: blocker
-ec-why: A test case becomes an event list plus initial values in EC; the formalism must first say whether a test stands for one trace or for all the traces it allows.
+ec-why: Resolved: a test case now stands for the set of traces it allows, which EC can encode as initial values plus the test's events. Which of those events are fixed exactly is still open ("Events happen when the test fires them, but not only then").
 related: coverage-undefined, stimulus-vs-system, ec-software-events
 ---
 ## Summary
@@ -25,6 +25,13 @@ The assertions then say which of these traces the test expects.
 
 ## Fix
 Replace "to produce a concrete trace" (Section "Requirements & Test cases" of `formalism.tex`) with the set-of-traces definition, and define the coverage checker over this set.
+
+## Resolution
+Applied on 6 Oct 2026 in `tex-new/formalism.tex`, Section "Requirements & Test cases":
+- The sentence "to produce a concrete trace" is replaced by a paragraph saying that a test case stands for the set of traces it allows, with the Req 10 example.
+- New Definition "Traces of a test case": $\mathit{Traces}(\mathit{TC})$ contains the traces that agree with the setup at time 0 and satisfy the effect of every stimulus; $\mathit{Expected}(\mathit{TC})$ contains those in which every assertion holds.
+
+Still open, as separate problems: an effect says that an event happens when the test fires it, not only then ("Events happen when the test fires them, but not only then"), and what the checker computes over these sets ("What the coverage checker computes is not defined").
 
 ## Affects
 - all: the coverage checker (goal 3) has no defined meaning until this is fixed
